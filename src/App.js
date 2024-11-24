@@ -1,12 +1,11 @@
 import React, { Suspense, useEffect } from 'react'
-import { HashRouter, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import PublicRoutes from './routes/PublicRoutes'
 import PrivateRoutes from './routes/PrivateRoutes'
 import { useSelector } from 'react-redux'
 
 import { CSpinner, useColorModes } from '@coreui/react'
 import './scss/style.scss'
-
 import './scss/examples.scss'
 
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
@@ -25,11 +24,9 @@ const App = () => {
       setColorMode(theme)
     }
 
-    if (isColorModeSet()) {
-      return
+    if (!isColorModeSet()) {
+      setColorMode(storedTheme)
     }
-
-    setColorMode(storedTheme)
   }, [])
 
   return (
@@ -41,12 +38,17 @@ const App = () => {
           </div>
         }
       >
-        <PublicRoutes>
-          <Route exact path="/login" name="Login Page" element={<Login />} />
-        </PublicRoutes>
-        <PrivateRoutes>
-          <Route path="*" name="Home" element={<DefaultLayout />} />
-        </PrivateRoutes>
+        <Routes>
+          {/* Rotas públicas */}
+          <Route element={<PublicRoutes />}>
+            <Route path="/login" element={<Login />} />
+          </Route>
+
+          {/* Rotas privadas */}
+          <Route element={<PrivateRoutes />}>
+            <Route path="*" element={<DefaultLayout />} />
+          </Route>
+        </Routes>
       </Suspense>
     </HashRouter>
   )

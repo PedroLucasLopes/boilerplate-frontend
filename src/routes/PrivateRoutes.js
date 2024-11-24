@@ -1,11 +1,12 @@
 import React from 'react'
-import { Routes } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
-// eslint-disable-next-line react/prop-types
-const PrivateRoutes = ({ children }) => {
+const PrivateRoutes = () => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
-  return isAuthenticated ? <Routes>{children}</Routes> : null
+
+  // Redireciona para /login se o usuário não estiver autenticado
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />
 }
 
 export default PrivateRoutes

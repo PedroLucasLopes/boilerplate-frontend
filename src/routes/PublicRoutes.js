@@ -1,15 +1,12 @@
 import React from 'react'
-import { Routes, useNavigate } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
-// eslint-disable-next-line react/prop-types
-const PublicRoutes = ({ children }) => {
-  const navigate = useNavigate()
+const PublicRoutes = () => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
-  if (!isAuthenticated) {
-    navigate('/login')
-  }
-  return !isAuthenticated ? <Routes>{children}</Routes> : null
+
+  // Redireciona para /dashboard se o usuário estiver autenticado
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />
 }
 
 export default PublicRoutes
