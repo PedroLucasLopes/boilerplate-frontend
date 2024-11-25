@@ -6,7 +6,7 @@ const PublicRoutes = () => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
 
   // Redireciona para /dashboard se o usuário estiver autenticado
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />
+  return isAuthenticated ? <Navigate to="/home" replace /> : <Outlet />
 }
 
 export default PublicRoutes

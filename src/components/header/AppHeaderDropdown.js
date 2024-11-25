@@ -22,7 +22,7 @@ import {
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useDispatch } from 'react-redux'
-import { logout } from '../../store/store'
+import { logout } from '../../store/authReducer'
 
 import avatar8 from './../../assets/images/avatars/8.jpg'
 

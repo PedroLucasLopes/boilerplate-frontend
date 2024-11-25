@@ -17,7 +17,8 @@ import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
 import Register from '../register/Register'
 import instance from '../../../api/instance'
-import { login, logout } from '../../../store/store'
+import { login, logout } from '../../../store/authReducer'
+import { setApiData } from '../../../store/apiReducer'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -27,8 +28,6 @@ const Login = () => {
   const [register, setRegister] = useState(false)
   const encodedCredentials = btoa(`${user.name}:${user.pass}`)
 
-  const notify = () => error && toast(error)
-
   const loginUser = useCallback(async () => {
     try {
       const response = await instance.get('/vms', {
@@ -36,7 +35,8 @@ const Login = () => {
           Authorization: `Basic ${encodedCredentials}`,
         },
       })
-      dispatch(login({ name: user.name, pass: user.pass }))
+      dispatch(setApiData(response.data.vms))
+      dispatch(login(encodedCredentials))
     } catch (error) {
       const errorMessage = error.response?.data?.detail
       toast.error(errorMessage)

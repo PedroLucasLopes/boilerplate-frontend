@@ -1,103 +1,37 @@
+// index.js
 import { legacy_createStore as createStore, combineReducers } from 'redux'
+import { authReducer, loadAuthState, saveAuthState } from './authReducer'
+import { apiReducer, loadApiState, saveApiState } from './apiReducer'
+import { uiReducer } from './uiReducer'
 
-// Recupera o estado inicial do localStorage
-const loadState = () => {
-  try {
-    const serializedState = localStorage.getItem('reduxState')
-    return serializedState ? JSON.parse(serializedState) : undefined
-  } catch (e) {
-    console.error('Failed to load state:', e)
-    return undefined
-  }
-}
+// Carrega o estado inicial do auth e da API
+const persistedAuthState = loadAuthState()
+const persistedApiState = loadApiState()
 
-// Salva o estado no localStorage
-const saveState = (state) => {
-  try {
-    const serializedState = JSON.stringify(state)
-    localStorage.setItem('reduxState', serializedState)
-  } catch (e) {
-    console.error('Failed to save state:', e)
-  }
-}
-
-// Estado inicial do auth
-const initialAuthState = {
-  isAuthenticated: false,
-  user: null,
-}
-
-// Actions
-const LOGIN = 'LOGIN'
-const LOGOUT = 'LOGOUT'
-
-const login = (user) => ({
-  type: LOGIN,
-  payload: user,
-})
-
-const logout = () => ({
-  type: LOGOUT,
-})
-
-// Auth reducer
-const authReducer = (state = initialAuthState, action) => {
-  switch (action.type) {
-    case LOGIN:
-      return {
-        ...state,
-        isAuthenticated: true,
-        user: action.payload,
-      }
-    case LOGOUT:
-      return {
-        ...state,
-        isAuthenticated: false,
-        user: null,
-      }
-    default:
-      return state
-  }
-}
-
-// Estado inicial da UI
-const initialUIState = {
-  sidebarShow: true,
-  theme: 'light',
-}
-
-// UI reducer
-const changeState = (state = initialUIState, { type, ...rest }) => {
-  switch (type) {
-    case 'set':
-      return { ...state, ...rest }
-    default:
-      return state
-  }
-}
-
-// Combine reducers
+// Combina os reducers
 const rootReducer = combineReducers({
   auth: authReducer,
-  ui: changeState,
+  api: apiReducer,
+  ui: uiReducer,
 })
 
-// Carrega o estado inicial do localStorage
-const persistedState = loadState()
+// Cria a store com o estado inicial do auth, API e UI
+const store = createStore(rootReducer, {
+  auth: persistedAuthState, // Usa o estado persistido para auth
+  api: persistedApiState, // Usa o estado persistido para API
+})
 
-// Cria a store com o estado persistido
-const store = createStore(rootReducer, persistedState)
-
-// Salva o estado no localStorage sempre que ele mudar
+// Salva o estado no localStorage e sessionStorage sempre que houver uma mudança
 store.subscribe(() => {
-  const state = store.getState()
+  const { auth, api } = store.getState()
 
-  // Verifica se o usuário fez logout
-  if (!state.auth.isAuthenticated) {
-    localStorage.removeItem('reduxState')
+  if (!auth.isAuthenticated) {
+    localStorage.removeItem('reduxAuthState')
   } else {
-    saveState(state)
+    saveAuthState(auth) // Salva o estado do auth
   }
+
+  saveApiState(api) // Salva o estado da API no sessionStorage
 })
 
-export { store, login, logout }
+export { store }
