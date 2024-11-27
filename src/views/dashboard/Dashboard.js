@@ -53,8 +53,11 @@ import avatar6 from 'src/assets/images/avatars/6.jpg'
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
+import useMonitor from '../../hooks/useMonitor'
 
 const Dashboard = () => {
+  const monitorId = Number(localStorage.getItem('monitorId'))
+  const { data } = useMonitor(monitorId)
   const progressExample = [
     { title: 'Visits', value: '29.703 Users', percent: 40, color: 'success' },
     { title: 'Unique', value: '24.093 Users', percent: 20, color: 'info' },
@@ -178,7 +181,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <WidgetsDropdown className="mb-4" />
+      <WidgetsDropdown data={data} monitorId={monitorId} className="mb-4" />
       <CCard className="mb-4">
         <CCardBody>
           <CRow>

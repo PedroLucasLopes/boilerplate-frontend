@@ -27,6 +27,7 @@ store.subscribe(() => {
 
   if (!auth.isAuthenticated) {
     localStorage.removeItem('reduxAuthState')
+    sessionStorage.removeItem('reduxApiState')
   } else {
     saveAuthState(auth) // Salva o estado do auth
   }
