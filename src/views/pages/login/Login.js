@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useState } from 'react'
 import {
   CButton,
   CCard,
@@ -12,37 +12,23 @@ import {
   CInputGroupText,
   CRow,
 } from '@coreui/react'
-import { useDispatch } from 'react-redux'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
 import Register from '../register/Register'
-import instance from '../../../api/instance'
-import { login, logout } from '../../../store/authReducer'
-import { setApiData } from '../../../store/apiReducer'
-import { ToastContainer, toast } from 'react-toastify'
+import { ToastContainer } from 'react-toastify'
+import useGetVms from '../../../hooks/useGetVms'
 import 'react-toastify/dist/ReactToastify.css'
 
 const Login = () => {
-  const dispatch = useDispatch()
   const [user, setUser] = useState({ name: '', pass: '' })
   const [register, setRegister] = useState(false)
-  const encodedCredentials = btoa(`${user.name}:${user.pass}`)
 
-  const loginUser = useCallback(async () => {
-    try {
-      const response = await instance.get('/vms', {
-        headers: {
-          Authorization: `Basic ${encodedCredentials}`,
-        },
-      })
-      dispatch(setApiData(response.data.vms))
-      dispatch(login(encodedCredentials))
-    } catch (error) {
-      const errorMessage = error.response?.data?.detail
-      toast.error(errorMessage)
-      dispatch(logout())
-    }
-  }, [user, encodedCredentials, dispatch])
+  const { getVms } = useGetVms()
+
+  const handleLogin = () => {
+    const encodedCredentials = btoa(`${user.name}:${user.pass}`)
+    getVms(encodedCredentials)
+  }
 
   return !register ? (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
@@ -88,7 +74,7 @@ const Login = () => {
                     </CInputGroup>
                     <CRow>
                       <CCol xs={6}>
-                        <CButton color="primary" className="px-4" onClick={loginUser}>
+                        <CButton color="primary" className="px-4" onClick={handleLogin}>
                           Login
                         </CButton>
                       </CCol>

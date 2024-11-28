@@ -5,7 +5,7 @@ const useMonitor = (id) => {
     setId(id)
   }
 
-  const result = useObservable() || { data: null, loading: true, error: null } // Estado inicial padrão
+  const result = useObservable() || { data: null, loading: true, error: null }
 
   const { data, loading, error } = result
 

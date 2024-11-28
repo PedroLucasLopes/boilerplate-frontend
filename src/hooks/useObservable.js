@@ -12,6 +12,7 @@ const fetchData = async (id) => {
         Authorization: `Basic ${encodedCredentials}`,
       },
     })
+
     sessionStorage.setItem('monitor', JSON.stringify(response.data))
     return { data: response.data, loading: false, error: null }
   } catch (err) {

@@ -33,6 +33,10 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
     })
   }, [widgetChartRef1, widgetChartRef2])
 
+  const fillCharts = (metric) => {
+    return data ? data['Metrics History'][metric] : savedData['Metrics History'][metric]
+  }
+
   return (
     <>
       <CRow className={className} xs={{ gutter: 4 }}>
@@ -62,9 +66,12 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
               color="primary"
               value={
                 <>
-                  {data ? data['CPU Usage'] : savedData['CPU Usage']}
+                  {data ? data['CPU Usage'] : savedData['CPU Usage']}%&nbsp;
                   <span className="fs-6 fw-normal">
-                    (-12.4% <CIcon icon={cilArrowBottom} />)
+                    (Média:{' '}
+                    {fillCharts('cpu_usage').reduce((acc, act) => acc + act) /
+                      fillCharts('cpu_usage').length}
+                    )
                   </span>
                 </>
               }
@@ -75,14 +82,14 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                   className="mt-3 mx-3"
                   style={{ height: '70px' }}
                   data={{
-                    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+                    labels: fillCharts('cpu_usage').map((value) => `${value}%`),
                     datasets: [
                       {
-                        label: 'My First dataset',
+                        label: 'Uso de CPU',
                         backgroundColor: 'transparent',
                         borderColor: 'rgba(255,255,255,.55)',
                         pointBackgroundColor: getStyle('--cui-primary'),
-                        data: [65, 59, 84, 84, 51, 55, 40],
+                        data: fillCharts('cpu_usage'),
                       },
                     ],
                   }}
@@ -107,8 +114,8 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                         },
                       },
                       y: {
-                        min: 30,
-                        max: 89,
+                        min: Math.min(...fillCharts('cpu_usage')) - 10,
+                        max: Math.max(...fillCharts('cpu_usage')) + 10,
                         display: false,
                         grid: {
                           display: false,
@@ -139,9 +146,9 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
               color="info"
               value={
                 <>
-                  {data ? data['Memory Usage'] : savedData['Memory Usage']}
+                  {data ? data['Memory Usage'] : savedData['Memory Usage']}&nbsp;
                   <span className="fs-6 fw-normal">
-                    (40.9% <CIcon icon={cilArrowTop} />)
+                    (Memória Total: {data ? data['Total Memory'] : savedData['Total Memory']})
                   </span>
                 </>
               }
@@ -152,14 +159,14 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                   className="mt-3 mx-3"
                   style={{ height: '70px' }}
                   data={{
-                    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+                    labels: fillCharts('memory_usage').map((value) => `${value} MB`),
                     datasets: [
                       {
-                        label: 'My First dataset',
+                        label: 'Uso de Memória',
                         backgroundColor: 'transparent',
                         borderColor: 'rgba(255,255,255,.55)',
                         pointBackgroundColor: getStyle('--cui-info'),
-                        data: [1, 18, 9, 17, 34, 22, 11],
+                        data: fillCharts('memory_usage'),
                       },
                     ],
                   }}
@@ -184,8 +191,8 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                         },
                       },
                       y: {
-                        min: -9,
-                        max: 39,
+                        min: Math.min(...fillCharts('memory_usage')) - 10,
+                        max: Math.max(...fillCharts('memory_usage')) + 10,
                         display: false,
                         grid: {
                           display: false,
@@ -217,7 +224,12 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                 <>
                   {data ? data['Response Time'] : savedData['Response Time']}
                   <span className="fs-6 fw-normal">
-                    (84.7% <CIcon icon={cilArrowTop} />)
+                    (
+                    {(
+                      fillCharts('latency')[fillCharts('latency').length - 2] /
+                      fillCharts('latency')[fillCharts('latency').length - 1]
+                    ).toFixed(2)}{' '}
+                    <CIcon icon={cilArrowTop} />)
                   </span>
                 </>
               }
@@ -227,13 +239,13 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                   className="mt-3"
                   style={{ height: '70px' }}
                   data={{
-                    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+                    labels: fillCharts('latency').map((value) => `${value.toFixed(2)}ms`),
                     datasets: [
                       {
-                        label: 'My First dataset',
+                        label: 'Latência',
                         backgroundColor: 'rgba(255,255,255,.2)',
                         borderColor: 'rgba(255,255,255,.55)',
-                        data: [78, 81, 80, 45, 34, 12, 40],
+                        data: fillCharts('latency').map((value) => value.toFixed(2)),
                         fill: true,
                       },
                     ],
@@ -251,6 +263,8 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                       },
                       y: {
                         display: false,
+                        min: Math.min(...fillCharts('latency')) - 10,
+                        max: Math.max(...fillCharts('latency')) + 10,
                       },
                     },
                     elements: {
