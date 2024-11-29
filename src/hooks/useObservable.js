@@ -5,7 +5,7 @@ import instance from '../api/instance'
 
 // Função para buscar dados do monitor
 const fetchData = async (id) => {
-  const encodedCredentials = JSON.parse(sessionStorage.getItem('user'))
+  const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
   try {
     const response = await instance.get(`/monitor/${id}`, {
       headers: {

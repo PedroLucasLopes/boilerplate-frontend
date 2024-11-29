@@ -5,12 +5,12 @@ import useGetVms from '../hooks/useGetVms'
 
 const PrivateRoutes = () => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
-  const encodedUser = JSON.parse(sessionStorage.getItem('user'))
+  const encodedUser = JSON.parse(localStorage.getItem('reduxAuthState'))
   const { getVms } = useGetVms()
 
   useEffect(() => {
-    if (isAuthenticated && encodedUser) {
-      getVms(encodedUser)
+    if (isAuthenticated && encodedUser?.user) {
+      getVms(encodedUser.user)
     }
   }, [isAuthenticated, encodedUser, getVms])
 

@@ -36,10 +36,8 @@ export const apiReducer = (state = initialApiState, action) => {
 // Funções para salvar e carregar o estado no sessionStorage
 export const saveApiState = (apiState) => {
   try {
-    if (apiState !== initialApiState) {
-      const serializedState = JSON.stringify(apiState)
-      sessionStorage.setItem('reduxApiState', serializedState)
-    }
+    const serializedState = JSON.stringify(apiState)
+    sessionStorage.setItem('reduxApiState', serializedState)
   } catch (e) {
     console.error('Failed to save API state:', e)
   }
