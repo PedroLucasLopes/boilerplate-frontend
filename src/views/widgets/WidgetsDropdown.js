@@ -1,289 +1,218 @@
-import React, { useCallback, useEffect, useRef } from 'react'
+// components/WidgetsDropdown.jsx
+import React, { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-
-import { CRow, CCol, CWidgetStatsA, CFormSelect } from '@coreui/react'
+import { CRow, CFormSelect, CWidgetStatsB, CCol, CFormSwitch } from '@coreui/react'
+import MetricWidget from '../../components/metricWidget'
+import { chartOptions, lineStyles } from '../../utils/chartConfig'
 import { getStyle } from '@coreui/utils'
-import { CChartLine } from '@coreui/react-chartjs'
-import CIcon from '@coreui/icons-react'
-import { cilArrowBottom, cilArrowTop } from '@coreui/icons'
 import { setId } from '../../hooks/useObservable'
+import Blob from '../../components/Blob'
+
+const calculateAverage = (values) =>
+  (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2)
 
 const WidgetsDropdown = ({ data, monitorId, className }) => {
   const widgetChartRef1 = useRef(null)
   const widgetChartRef2 = useRef(null)
+  const widgetChartRef3 = useRef(null)
 
-  const existentVms = JSON.parse(sessionStorage.getItem('reduxApiState'))
-  const savedData = JSON.parse(sessionStorage.getItem('monitor'))
+  const existentVms = JSON.parse(sessionStorage.getItem('reduxApiState')) || []
+  const savedData = JSON.parse(sessionStorage.getItem('monitor')) || {}
+
+  const metrics = data || savedData
 
   useEffect(() => {
-    document.documentElement.addEventListener('ColorSchemeChange', () => {
+    const updateChartColors = () => {
       if (widgetChartRef1.current) {
-        setTimeout(() => {
-          widgetChartRef1.current.data.datasets[0].pointBackgroundColor = getStyle('--cui-primary')
-          widgetChartRef1.current.update()
-        })
+        widgetChartRef1.current.data.datasets[0].pointBackgroundColor = getStyle('--cui-primary')
+        widgetChartRef1.current.update()
       }
 
       if (widgetChartRef2.current) {
-        setTimeout(() => {
-          widgetChartRef2.current.data.datasets[0].pointBackgroundColor = getStyle('--cui-info')
-          widgetChartRef2.current.update()
-        })
+        widgetChartRef2.current.data.datasets[0].pointBackgroundColor = getStyle('--cui-info')
+        widgetChartRef2.current.update()
       }
-    })
-  }, [widgetChartRef1, widgetChartRef2])
+    }
 
-  const fillCharts = (metric) => {
-    return data ? data['Metrics History'][metric] : savedData['Metrics History'][metric]
-  }
+    document.documentElement.addEventListener('ColorSchemeChange', updateChartColors)
+    return () =>
+      document.documentElement.removeEventListener('ColorSchemeChange', updateChartColors)
+  }, [])
+
+  const fillCharts = (metric) => metrics?.['Metrics History']?.[metric] || []
+
+  const formatCpuUsage = fillCharts('cpu_usage').map((value) => Number(value?.replace('%', '')))
+  const diskSpacePercentageFormat =
+    (Number(metrics['Free Disk Space']?.replace(/(G|T|MB|KB|B)/i, '')) /
+      Number(metrics['Total Disk Space']?.replace(/(G|T|MB|KB|B)/i, ''))) *
+    100
+  const activeConnectionsPercentageFormat =
+    (Number(metrics['Active Connections']) / Number(metrics['Max Connections'])) * 100
 
   return (
     <>
-      <CRow className={className} xs={{ gutter: 4 }}>
+      <CRow className={className}>
         <CFormSelect
           value={monitorId || ''}
-          onChange={(e) => {
-            const id = Number(e.target.value)
-            setId(id) // Atualiza o Observable
-          }}
+          onChange={(e) => setId(Number(e.target.value))}
           aria-label="VM Select Input"
         >
-          <option value="" defaultValue>
+          <option value="" readOnly defaultValue>
             Selecione uma VM
           </option>
-          {existentVms &&
-            existentVms.map((vm, i) => (
-              <option value={vm.id} key={i}>
-                {vm.vm_name} ({vm.ip})
-              </option>
-            ))}
+          {existentVms.map((vm, i) => (
+            <option value={vm.id} key={i}>
+              {vm.vm_name} ({vm.ip})
+            </option>
+          ))}
         </CFormSelect>
       </CRow>
-      {(data || savedData) && (
-        <CRow className={className} xs={{ gutter: 4 }}>
-          <CCol sm={6} xl={4} xxl={4}>
-            <CWidgetStatsA
+      {metrics && (
+        <>
+          <CRow className="d-flex justify-content-between align-items-center mb-3">
+            <CCol className="d-flex align-items-center">
+              <CFormSwitch
+                size="xl"
+                label="Mudar Automaticamente"
+                id="formSwitchCheckDefaultXL"
+                style={{ width: '3rem', marginRight: '.5rem' }}
+              />
+            </CCol>
+            {metrics['PostgreSQL Status'] === 'active' ? (
+              <CCol className="d-flex align-items-center">
+                <span className="active-status-active">ON</span>
+                <Blob />
+              </CCol>
+            ) : (
+              <CCol className="d-flex align-items-center">
+                <span className="active-status-inactive">OFF</span>
+                <Blob color="red" />
+              </CCol>
+            )}
+          </CRow>
+          <CRow className={className} xs={{ gutter: 4 }}>
+            <MetricWidget
+              title="Uso da CPU"
               color="primary"
               value={
                 <>
-                  {data ? data['CPU Usage'] : savedData['CPU Usage']}%&nbsp;
+                  {metrics['CPU Usage']}&nbsp;
                   <span className="fs-6 fw-normal">
-                    (Média:{' '}
-                    {fillCharts('cpu_usage').reduce((acc, act) => acc + act) /
-                      fillCharts('cpu_usage').length}
-                    )
+                    (Média: {calculateAverage(formatCpuUsage)}%)
                   </span>
                 </>
               }
-              title="Uso da CPU"
-              chart={
-                <CChartLine
-                  ref={widgetChartRef1}
-                  className="mt-3 mx-3"
-                  style={{ height: '70px' }}
-                  data={{
-                    labels: fillCharts('cpu_usage').map((value) => `${value}%`),
-                    datasets: [
-                      {
-                        label: 'Uso de CPU',
-                        backgroundColor: 'transparent',
-                        borderColor: 'rgba(255,255,255,.55)',
-                        pointBackgroundColor: getStyle('--cui-primary'),
-                        data: fillCharts('cpu_usage'),
-                      },
-                    ],
-                  }}
-                  options={{
-                    plugins: {
-                      legend: {
-                        display: false,
-                      },
-                    },
-                    maintainAspectRatio: false,
-                    scales: {
-                      x: {
-                        border: {
-                          display: false,
-                        },
-                        grid: {
-                          display: false,
-                          drawBorder: false,
-                        },
-                        ticks: {
-                          display: false,
-                        },
-                      },
-                      y: {
-                        min: Math.min(...fillCharts('cpu_usage')) - 10,
-                        max: Math.max(...fillCharts('cpu_usage')) + 10,
-                        display: false,
-                        grid: {
-                          display: false,
-                        },
-                        ticks: {
-                          display: false,
-                        },
-                      },
-                    },
-                    elements: {
-                      line: {
-                        borderWidth: 1,
-                        tension: 0.4,
-                      },
-                      point: {
-                        radius: 4,
-                        hitRadius: 10,
-                        hoverRadius: 4,
-                      },
-                    },
-                  }}
-                />
-              }
+              chartData={{
+                labels: fillCharts('cpu_usage'),
+                datasets: [
+                  {
+                    label: 'Uso de CPU',
+                    backgroundColor: 'transparent',
+                    borderColor: 'rgba(255,255,255,.55)',
+                    pointBackgroundColor: getStyle('--cui-primary'),
+                    data: formatCpuUsage,
+                    ...lineStyles.default,
+                  },
+                ],
+              }}
+              chartOptions={chartOptions(
+                Math.min(...formatCpuUsage) * 0.9,
+                Math.max(...formatCpuUsage) * 1.1,
+              )}
+              chartRef={widgetChartRef1}
             />
-          </CCol>
-          <CCol sm={6} xl={4} xxl={4}>
-            <CWidgetStatsA
+            <MetricWidget
+              title="Uso de Memória"
               color="info"
               value={
                 <>
-                  {data ? data['Memory Usage'] : savedData['Memory Usage']}&nbsp;
-                  <span className="fs-6 fw-normal">
-                    (Memória Total: {data ? data['Total Memory'] : savedData['Total Memory']})
-                  </span>
+                  {metrics['Memory Usage']}&nbsp;
+                  <span className="fs-6 fw-normal">(Total: {metrics['Total Memory']})</span>
                 </>
               }
-              title="Uso de Memória"
-              chart={
-                <CChartLine
-                  ref={widgetChartRef2}
-                  className="mt-3 mx-3"
-                  style={{ height: '70px' }}
-                  data={{
-                    labels: fillCharts('memory_usage').map((value) => `${value} MB`),
-                    datasets: [
-                      {
-                        label: 'Uso de Memória',
-                        backgroundColor: 'transparent',
-                        borderColor: 'rgba(255,255,255,.55)',
-                        pointBackgroundColor: getStyle('--cui-info'),
-                        data: fillCharts('memory_usage'),
-                      },
-                    ],
-                  }}
-                  options={{
-                    plugins: {
-                      legend: {
-                        display: false,
-                      },
-                    },
-                    maintainAspectRatio: false,
-                    scales: {
-                      x: {
-                        border: {
-                          display: false,
-                        },
-                        grid: {
-                          display: false,
-                          drawBorder: false,
-                        },
-                        ticks: {
-                          display: false,
-                        },
-                      },
-                      y: {
-                        min: Math.min(...fillCharts('memory_usage')) - 10,
-                        max: Math.max(...fillCharts('memory_usage')) + 10,
-                        display: false,
-                        grid: {
-                          display: false,
-                        },
-                        ticks: {
-                          display: false,
-                        },
-                      },
-                    },
-                    elements: {
-                      line: {
-                        borderWidth: 1,
-                      },
-                      point: {
-                        radius: 4,
-                        hitRadius: 10,
-                        hoverRadius: 4,
-                      },
-                    },
-                  }}
-                />
-              }
+              chartData={{
+                labels: fillCharts('memory_usage').map((value) => `${value} MB`),
+                datasets: [
+                  {
+                    label: 'Uso de Memória',
+                    backgroundColor: 'transparent',
+                    borderColor: 'rgba(255,255,255,.55)',
+                    pointBackgroundColor: getStyle('--cui-info'),
+                    data: fillCharts('memory_usage'),
+                    ...lineStyles.dashed,
+                  },
+                ],
+              }}
+              chartOptions={chartOptions(
+                Math.min(...fillCharts('memory_usage')) * 0.9,
+                Math.max(...fillCharts('memory_usage')) * 1.1,
+              )}
+              chartRef={widgetChartRef2}
             />
-          </CCol>
-          <CCol sm={6} xl={4} xxl={4}>
-            <CWidgetStatsA
+            <MetricWidget
+              title="Tempo de Resposta"
               color="warning"
               value={
                 <>
-                  {data ? data['Response Time'] : savedData['Response Time']}
+                  {metrics['Response Time']}&nbsp;
                   <span className="fs-6 fw-normal">
                     (
                     {(
                       fillCharts('latency')[fillCharts('latency').length - 2] /
                       fillCharts('latency')[fillCharts('latency').length - 1]
-                    ).toFixed(2)}{' '}
-                    <CIcon icon={cilArrowTop} />)
+                    ).toFixed(2)}
+                    )
                   </span>
                 </>
               }
-              title="Tempo de resposta (ms)"
-              chart={
-                <CChartLine
-                  className="mt-3"
-                  style={{ height: '70px' }}
-                  data={{
-                    labels: fillCharts('latency').map((value) => `${value.toFixed(2)}ms`),
-                    datasets: [
-                      {
-                        label: 'Latência',
-                        backgroundColor: 'rgba(255,255,255,.2)',
-                        borderColor: 'rgba(255,255,255,.55)',
-                        data: fillCharts('latency').map((value) => value.toFixed(2)),
-                        fill: true,
-                      },
-                    ],
-                  }}
-                  options={{
-                    plugins: {
-                      legend: {
-                        display: false,
-                      },
-                    },
-                    maintainAspectRatio: false,
-                    scales: {
-                      x: {
-                        display: false,
-                      },
-                      y: {
-                        display: false,
-                        min: Math.min(...fillCharts('latency')) - 10,
-                        max: Math.max(...fillCharts('latency')) + 10,
-                      },
-                    },
-                    elements: {
-                      line: {
-                        borderWidth: 2,
-                        tension: 0.4,
-                      },
-                      point: {
-                        radius: 0,
-                        hitRadius: 10,
-                        hoverRadius: 4,
-                      },
-                    },
-                  }}
-                />
-              }
+              chartData={{
+                labels: fillCharts('latency').map((value) => `${value.toFixed(2)}ms`),
+                datasets: [
+                  {
+                    label: 'Latência',
+                    backgroundColor: 'rgba(255,255,255,.2)',
+                    borderColor: 'rgba(255,255,255,.55)',
+                    data: fillCharts('latency').map((value) => value.toFixed(2)),
+                    ...lineStyles.wave,
+                  },
+                ],
+              }}
+              chartOptions={chartOptions(
+                Math.min(...fillCharts('latency')) * 0.9,
+                Math.max(...fillCharts('latency')) * 1.1,
+              )}
+              chartRef={widgetChartRef3}
             />
-          </CCol>
-        </CRow>
+          </CRow>
+          <CRow>
+            <CCol xs={6}>
+              <CWidgetStatsB
+                className="mb-3"
+                color="danger"
+                inverse
+                progress={{
+                  value: diskSpacePercentageFormat,
+                }}
+                text={`Espaço em disco disponível (total: ${metrics['Total Disk Space']})`}
+                title="Espaço em Disco"
+                value={`${metrics['Free Disk Space']} (${diskSpacePercentageFormat.toFixed(2)}%)`}
+              />
+            </CCol>
+            <CCol xs={6}>
+              <CWidgetStatsB
+                className="mb-3"
+                color="success"
+                inverse
+                progress={{
+                  value: activeConnectionsPercentageFormat,
+                }}
+                text={`Conexões atuais simultâneas (total: ${metrics['Max Connections']})`}
+                title="Conexões Ativas"
+                value={`${metrics['Active Connections']} (${activeConnectionsPercentageFormat.toFixed(2)}%)`}
+              />
+            </CCol>
+          </CRow>
+        </>
       )}
     </>
   )
@@ -293,7 +222,6 @@ WidgetsDropdown.propTypes = {
   data: PropTypes.object,
   className: PropTypes.string,
   monitorId: PropTypes.number,
-  withCharts: PropTypes.bool,
 }
 
 export default WidgetsDropdown

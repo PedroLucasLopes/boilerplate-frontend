@@ -53,8 +53,14 @@ export const loadAuthState = () => {
 
 export const saveAuthState = (authState) => {
   try {
-    const serializedState = JSON.stringify(authState)
-    localStorage.setItem('reduxAuthState', serializedState)
+    console.log(authState)
+    // Serializar os valores
+    const serializedAuthorization = JSON.stringify(authState.isAuthenticated)
+    const serializedUser = JSON.stringify(authState.user)
+
+    // Armazenar os itens no localStorage e sessionStorage
+    localStorage.setItem('reduxAuthState', serializedAuthorization)
+    sessionStorage.setItem('user', serializedUser)
   } catch (e) {
     console.error('Failed to save auth state:', e)
   }

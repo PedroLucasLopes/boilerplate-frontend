@@ -27,12 +27,14 @@ store.subscribe(() => {
 
   if (!auth.isAuthenticated) {
     localStorage.removeItem('reduxAuthState')
+    localStorage.removeItem('monitorId')
     sessionStorage.removeItem('reduxApiState')
+    sessionStorage.removeItem('user')
+    sessionStorage.removeItem('monitor')
   } else {
     saveAuthState(auth) // Salva o estado do auth
+    saveApiState(api) // Salva o estado da API no sessionStorage
   }
-
-  saveApiState(api) // Salva o estado da API no sessionStorage
 })
 
 export { store }
