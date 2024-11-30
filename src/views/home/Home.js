@@ -6,14 +6,9 @@ import {
   CCardBody,
   CCardSubtitle,
   CCardFooter,
-  CModal,
-  CModalHeader,
-  CModalBody,
-  CModalTitle,
-  CModalFooter,
   CButton,
 } from '@coreui/react'
-import { cilTrash } from '@coreui/icons'
+import { cilTrash, cilPlus } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { cibPostgresql } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux'
@@ -22,9 +17,12 @@ import { useNavigate } from 'react-router-dom'
 import instance from '../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
 import { setApiData } from '../../store/apiReducer'
+import DeleteModal from './Components/DeleteModal'
+import NewVmModal from './Components/NewVmModal'
 
 const Home = () => {
   const [visible, setVisible] = useState(false)
+  const [visibleNew, setVisibleNew] = useState(false)
   const [deleteVm, setDeleteVm] = useState({})
 
   const dispatch = useDispatch()
@@ -40,6 +38,7 @@ const Home = () => {
       })
       // Atualizar a lista de VMs removendo a VM deletada
       dispatch(setApiData(vms.filter((vm) => vm.id !== deleteVm.id)))
+      sessionStorage.removeItem('monitor')
       setVisible(false)
     } catch (e) {
       toast.error(`Erro ao deletar a VM: ${e}`)
@@ -50,7 +49,19 @@ const Home = () => {
 
   return (
     <>
-      <h2>VMs Cadastradas</h2>
+      <div className="d-flex justify-content-between mb-2">
+        <h2>VMs Cadastradas</h2>
+        <CButton
+          color="primary"
+          onClick={() => setVisibleNew(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '12rem' }}
+        >
+          <div className="mr-2">
+            <CIcon icon={cilPlus} />
+          </div>
+          Cadastrar Nova VM
+        </CButton>
+      </div>
       <div className="border-top mb-3"></div>
       <div className="row g-3">
         {vms &&
@@ -101,27 +112,13 @@ const Home = () => {
           ))}
         <ToastContainer />
       </div>
-
-      <CModal
+      <DeleteModal
+        deleteVm={deleteVm}
         visible={visible}
-        onClose={() => setVisible(false)}
-        aria-labelledby="LiveDemoExampleLabel"
-      >
-        <CModalHeader>
-          <CModalTitle id="LiveDemoExampleLabel">Deletar VM</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <p>{`Tem certeza que deseja deletar ${deleteVm.vm_name} (${deleteVm.ip})`}</p>
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" onClick={() => setVisible(false)}>
-            Fechar
-          </CButton>
-          <CButton color="danger" onClick={handleDeleteVm}>
-            Deletar
-          </CButton>
-        </CModalFooter>
-      </CModal>
+        setVisible={setVisible}
+        handleDeleteVm={handleDeleteVm}
+      />
+      <NewVmModal visibleNew={visibleNew} setVisibleNew={setVisibleNew} />
     </>
   )
 }
