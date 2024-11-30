@@ -1,25 +1,24 @@
 // components/WidgetsDropdown.jsx
 import React, { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import { CRow, CFormSelect, CWidgetStatsB, CCol, CFormSwitch } from '@coreui/react'
+import { CRow, CFormSelect, CWidgetStatsB, CCol, CFormSwitch, CSpinner } from '@coreui/react'
+import NoneCharts from '../NoneCharts/NoneCharts'
 import MetricWidget from '../../components/metricWidget'
 import { chartOptions, lineStyles } from '../../utils/chartConfig'
 import { getStyle } from '@coreui/utils'
 import { setId } from '../../hooks/useObservable'
 import Blob from '../../components/Blob'
+import switchBackground from '../../utils/switchBackground.js'
 
 const calculateAverage = (values) =>
   (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2)
 
-const WidgetsDropdown = ({ data, monitorId, className }) => {
+const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts }) => {
   const widgetChartRef1 = useRef(null)
   const widgetChartRef2 = useRef(null)
   const widgetChartRef3 = useRef(null)
 
   const existentVms = JSON.parse(sessionStorage.getItem('reduxApiState')) || []
-  const savedData = JSON.parse(sessionStorage.getItem('monitor')) || {}
-
-  const metrics = data || savedData
 
   useEffect(() => {
     const updateChartColors = () => {
@@ -39,21 +38,27 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
       document.documentElement.removeEventListener('ColorSchemeChange', updateChartColors)
   }, [])
 
-  const fillCharts = (metric) => metrics?.['Metrics History']?.[metric] || []
+  const safeReplace = (value, regex, replacement = '') =>
+    typeof value === 'string' ? value.replace(regex, replacement) : '0'
 
-  const formatCpuUsage = fillCharts('cpu_usage').map((value) => Number(value?.replace('%', '')))
   const diskSpacePercentageFormat =
-    (Number(metrics['Free Disk Space']?.replace(/(G|T|MB|KB|B)/i, '')) /
-      Number(metrics['Total Disk Space']?.replace(/(G|T|MB|KB|B)/i, ''))) *
+    (Number(safeReplace(metrics['Free Disk Space'], /(G|T|MB|KB|B)/i)) /
+      Number(safeReplace(metrics['Total Disk Space'], /(G|T|MB|KB|B)/i))) *
     100
+
+  const formatCpuUsage = fillCharts('cpu_usage')
   const activeConnectionsPercentageFormat =
     (Number(metrics['Active Connections']) / Number(metrics['Max Connections'])) * 100
+
+  const changeStatus = (status) => {
+    return status === 'active' ? <Blob label="ON" /> : <Blob label="OFF" style="danger" />
+  }
 
   return (
     <>
       <CRow className={className}>
         <CFormSelect
-          value={monitorId || ''}
+          value={monitorId || metrics['ID']}
           onChange={(e) => setId(Number(e.target.value))}
           aria-label="VM Select Input"
         >
@@ -67,27 +72,21 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
           ))}
         </CFormSelect>
       </CRow>
-      {metrics && (
+      {Object.keys(metrics).length > 0 ? (
         <>
-          <CRow className="d-flex justify-content-between align-items-center mb-3">
-            <CCol className="d-flex align-items-center">
+          <CRow className="d-flex align-items-center mb-3">
+            <CCol className="d-flex gap-3 align-items-center ms-auto">
               <CFormSwitch
                 size="xl"
-                label="Mudar Automaticamente"
+                label="Alternar"
                 id="formSwitchCheckDefaultXL"
                 style={{ width: '3rem', marginRight: '.5rem' }}
               />
             </CCol>
-            {metrics['PostgreSQL Status'] === 'active' ? (
-              <CCol className="d-flex align-items-center">
-                <span className="active-status-active">ON</span>
-                <Blob />
-              </CCol>
+            {loading ? (
+              <Blob label="Ajustando" style="warning" />
             ) : (
-              <CCol className="d-flex align-items-center">
-                <span className="active-status-inactive">OFF</span>
-                <Blob color="red" />
-              </CCol>
+              changeStatus(metrics['PostgreSQL Status'])
             )}
           </CRow>
           <CRow className={className} xs={{ gutter: 4 }}>
@@ -103,7 +102,7 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                 </>
               }
               chartData={{
-                labels: fillCharts('cpu_usage'),
+                labels: fillCharts('cpu_usage').map((value) => `${value}%`),
                 datasets: [
                   {
                     label: 'Uso de CPU',
@@ -120,14 +119,17 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                 Math.max(...formatCpuUsage) * 1.1,
               )}
               chartRef={widgetChartRef1}
+              loading={loading}
+              spinnerColor="primary"
             />
+
             <MetricWidget
               title="Uso de Memória"
               color="info"
               value={
                 <>
                   {metrics['Memory Usage']}&nbsp;
-                  <span className="fs-6 fw-normal">(Total: {metrics['Total Memory']})</span>
+                  <span className="fs-6 fw-normal">(Total: {metrics['Total Memory'] || 0})</span>
                 </>
               }
               chartData={{
@@ -148,6 +150,8 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                 Math.max(...fillCharts('memory_usage')) * 1.1,
               )}
               chartRef={widgetChartRef2}
+              loading={loading}
+              spinnerColor="info"
             />
             <MetricWidget
               title="Tempo de Resposta"
@@ -182,46 +186,78 @@ const WidgetsDropdown = ({ data, monitorId, className }) => {
                 Math.max(...fillCharts('latency')) * 1.1,
               )}
               chartRef={widgetChartRef3}
+              loading={loading}
+              spinnerColor="warning"
             />
           </CRow>
           <CRow>
             <CCol xs={6}>
-              <CWidgetStatsB
-                className="mb-3"
-                color="danger"
-                inverse
-                progress={{
-                  value: diskSpacePercentageFormat,
-                }}
-                text={`Espaço em disco disponível (total: ${metrics['Total Disk Space']})`}
-                title="Espaço em Disco"
-                value={`${metrics['Free Disk Space']} (${diskSpacePercentageFormat.toFixed(2)}%)`}
-              />
+              {loading ? (
+                <div
+                  className="d-flex justify-content-center align-items-center"
+                  style={{
+                    height: '8rem',
+                    backgroundColor: switchBackground['danger'],
+                    borderRadius: '5px',
+                  }}
+                >
+                  <CSpinner color="danger" variant="grow" />
+                </div>
+              ) : (
+                <CWidgetStatsB
+                  className="mb-3"
+                  color="danger"
+                  inverse
+                  progress={{
+                    value: diskSpacePercentageFormat,
+                  }}
+                  text={`Espaço em disco disponível (total: ${metrics['Total Disk Space']})`}
+                  title="Espaço em Disco"
+                  value={`${metrics['Free Disk Space']} (${diskSpacePercentageFormat.toFixed(2)}%)`}
+                />
+              )}
             </CCol>
             <CCol xs={6}>
-              <CWidgetStatsB
-                className="mb-3"
-                color="success"
-                inverse
-                progress={{
-                  value: activeConnectionsPercentageFormat,
-                }}
-                text={`Conexões atuais simultâneas (total: ${metrics['Max Connections']})`}
-                title="Conexões Ativas"
-                value={`${metrics['Active Connections']} (${activeConnectionsPercentageFormat.toFixed(2)}%)`}
-              />
+              {loading ? (
+                <div
+                  className="d-flex justify-content-center align-items-center"
+                  style={{
+                    height: '8rem',
+                    backgroundColor: switchBackground['success'],
+                    borderRadius: '5px',
+                  }}
+                >
+                  <CSpinner color="success" variant="grow" />
+                </div>
+              ) : (
+                <CWidgetStatsB
+                  className="mb-3"
+                  color="success"
+                  inverse
+                  progress={{
+                    value: activeConnectionsPercentageFormat,
+                  }}
+                  text={`Conexões atuais simultâneas (total: ${metrics['Max Connections']})`}
+                  title="Conexões Ativas"
+                  value={`${metrics['Active Connections']} (${activeConnectionsPercentageFormat.toFixed(2)}%)`}
+                />
+              )}
             </CCol>
           </CRow>
         </>
+      ) : (
+        <NoneCharts />
       )}
     </>
   )
 }
 
 WidgetsDropdown.propTypes = {
-  data: PropTypes.object,
+  metrics: PropTypes.object,
   className: PropTypes.string,
   monitorId: PropTypes.number,
+  loading: PropTypes.bool,
+  fillCharts: PropTypes.func,
 }
 
 export default WidgetsDropdown

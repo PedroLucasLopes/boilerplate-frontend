@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from 'react'
 
+import PropTypes from 'prop-types'
 import { CChartLine } from '@coreui/react-chartjs'
 import { getStyle } from '@coreui/utils'
 
-const MainChart = () => {
+const MainChart = ({ fillCharts }) => {
   const chartRef = useRef(null)
 
   useEffect(() => {
@@ -26,7 +27,23 @@ const MainChart = () => {
     })
   }, [chartRef])
 
-  const random = () => Math.round(Math.random() * 100)
+  const formatDateArr = fillCharts('timestamps').map((timestamp) => {
+    const date = new Date(timestamp) // Converter o timestamp para um objeto Date
+    const hours = String(date.getHours()).padStart(2, '0') // Formatar horas com zero à esquerda
+    const minutes = String(date.getMinutes()).padStart(2, '0') // Formatar minutos com zero à esquerda
+    return `${hours}:${minutes}` // Retornar no formato hh:mm
+  })
+
+  const formatNumber = (num) => {
+    const units = ['', 'K', 'M', 'B', 'T'] // Definir os sufixos
+    const magnitude = Math.floor(Math.log10(num) / 3) // Calcular a magnitude
+    const scaled = num / Math.pow(10, magnitude * 3) // Reduzir o número
+
+    // Garantir que magnitude está dentro do range de unidades
+    return magnitude > 0 && magnitude < units.length
+      ? `${scaled.toFixed(2)}${units[magnitude]}`
+      : num.toString() // Retorna o número original se for menor que 1 mil
+  }
 
   return (
     <>
@@ -34,49 +51,24 @@ const MainChart = () => {
         ref={chartRef}
         style={{ height: '300px', marginTop: '40px' }}
         data={{
-          labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+          labels: formatDateArr,
           datasets: [
             {
-              label: 'My First dataset',
+              label: 'Leituras do Banco',
               backgroundColor: `rgba(${getStyle('--cui-info-rgb')}, .1)`,
               borderColor: getStyle('--cui-info'),
               pointHoverBackgroundColor: getStyle('--cui-info'),
               borderWidth: 2,
-              data: [
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-              ],
+              data: fillCharts('db_reads'), // Use os valores brutos aqui
               fill: true,
             },
             {
-              label: 'My Second dataset',
+              label: 'Escritas no Banco',
               backgroundColor: 'transparent',
               borderColor: getStyle('--cui-success'),
               pointHoverBackgroundColor: getStyle('--cui-success'),
               borderWidth: 2,
-              data: [
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-                random(50, 200),
-              ],
-            },
-            {
-              label: 'My Third dataset',
-              backgroundColor: 'transparent',
-              borderColor: getStyle('--cui-danger'),
-              pointHoverBackgroundColor: getStyle('--cui-danger'),
-              borderWidth: 1,
-              borderDash: [8, 5],
-              data: [65, 65, 65, 65, 65, 65, 65],
+              data: fillCharts('db_writes'), // Use os valores brutos aqui
             },
           ],
         }}
@@ -85,6 +77,14 @@ const MainChart = () => {
           plugins: {
             legend: {
               display: false,
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  const value = context.raw // Pega o valor numérico bruto
+                  return `${context.dataset.label}: ${formatNumber(value)}` // Formata o valor
+                },
+              },
             },
           },
           scales: {
@@ -105,11 +105,14 @@ const MainChart = () => {
               grid: {
                 color: getStyle('--cui-border-color-translucent'),
               },
-              max: 250,
+              min: Math.min(...fillCharts('db_writes'), ...fillCharts('db_reads')) * 0.9,
+              max: Math.max(...fillCharts('db_writes'), ...fillCharts('db_reads')) * 1.1,
               ticks: {
                 color: getStyle('--cui-body-color'),
                 maxTicksLimit: 5,
-                stepSize: Math.ceil(250 / 5),
+                callback: function (value) {
+                  return formatNumber(value) // Formata os valores das escalas
+                },
               },
             },
           },
@@ -128,6 +131,10 @@ const MainChart = () => {
       />
     </>
   )
+}
+
+MainChart.propTypes = {
+  fillCharts: PropTypes.func,
 }
 
 export default MainChart

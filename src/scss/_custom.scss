@@ -3,7 +3,7 @@
   cursor: pointer;
 }
 
-.active-status-active,.active-status-inactive {
+.active-status-active,.active-status-inactive, .active-status-warning {
   font-weight: bold;
 }
 
@@ -13,6 +13,10 @@
 
 .active-status-inactive {
   color: rgba(255, 82, 82, 1);
+}
+
+.active-status-warning {
+  color: rgba(255, 177, 66, 1);
 }
 
 .blob {
