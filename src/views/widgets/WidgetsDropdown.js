@@ -1,5 +1,5 @@
 // components/WidgetsDropdown.jsx
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { CRow, CFormSelect, CWidgetStatsB, CCol, CFormSwitch, CSpinner } from '@coreui/react'
 import NoneCharts from '../NoneCharts/NoneCharts'
@@ -17,8 +17,65 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
   const widgetChartRef1 = useRef(null)
   const widgetChartRef2 = useRef(null)
   const widgetChartRef3 = useRef(null)
+  const intervalRef = useRef(null)
+
+  const [isForward, setIsForward] = useState(false)
+  const [autoSwitch, setAutoSwitch] = useState(false)
 
   const existentVms = JSON.parse(sessionStorage.getItem('reduxApiState')) || []
+
+  const safeReplace = (value, regex, replacement = '') =>
+    typeof value === 'string' ? value.replace(regex, replacement) : '0'
+
+  const diskSpacePercentageFormat =
+    (Number(safeReplace(metrics['Free Disk Space'], /(G|T|MB|KB|B)/i)) /
+      Number(safeReplace(metrics['Total Disk Space'], /(G|T|MB|KB|B)/i))) *
+    100
+
+  const formatCpuUsage = fillCharts('cpu_usage')
+  const activeConnectionsPercentageFormat =
+    (Number(metrics['Active Connections']) / Number(metrics['Max Connections'])) * 100
+
+  const changeStatus = (status) => {
+    return status === 'active' ? <Blob label="ON" /> : <Blob label="OFF" style="danger" />
+  }
+
+  const handleAutoGetVms = (e) => {
+    setAutoSwitch(e.target.checked)
+  }
+
+  useEffect(() => {
+    if (autoSwitch) {
+      intervalRef.current = setInterval(() => {
+        const currentIndex = existentVms.findIndex((vm) => vm.id === monitorId)
+        let nextIndex
+
+        // Determina o próximo índice com base na direção
+        if (isForward) {
+          nextIndex = currentIndex + 1
+          if (nextIndex >= existentVms.length) {
+            nextIndex = existentVms.length - 2 // Voltar
+            setIsForward(false)
+          }
+        } else {
+          nextIndex = currentIndex - 1
+          if (nextIndex < 0) {
+            nextIndex = 1 // Avançar
+            setIsForward(true)
+          }
+        }
+
+        const nextVm = existentVms[nextIndex]
+        if (nextVm) {
+          setId(nextVm.id)
+        }
+      }, 60000) // 1 minuto
+
+      // Limpeza do intervalo
+      return () => clearInterval(intervalRef.current)
+    }
+    clearInterval(intervalRef.current)
+  }, [autoSwitch, monitorId, existentVms, isForward])
 
   useEffect(() => {
     const updateChartColors = () => {
@@ -37,22 +94,6 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
     return () =>
       document.documentElement.removeEventListener('ColorSchemeChange', updateChartColors)
   }, [])
-
-  const safeReplace = (value, regex, replacement = '') =>
-    typeof value === 'string' ? value.replace(regex, replacement) : '0'
-
-  const diskSpacePercentageFormat =
-    (Number(safeReplace(metrics['Free Disk Space'], /(G|T|MB|KB|B)/i)) /
-      Number(safeReplace(metrics['Total Disk Space'], /(G|T|MB|KB|B)/i))) *
-    100
-
-  const formatCpuUsage = fillCharts('cpu_usage')
-  const activeConnectionsPercentageFormat =
-    (Number(metrics['Active Connections']) / Number(metrics['Max Connections'])) * 100
-
-  const changeStatus = (status) => {
-    return status === 'active' ? <Blob label="ON" /> : <Blob label="OFF" style="danger" />
-  }
 
   return (
     <>
@@ -80,6 +121,7 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
                 size="xl"
                 label="Alternar"
                 id="formSwitchCheckDefaultXL"
+                onChange={(e) => handleAutoGetVms(e)}
                 style={{ width: '3rem', marginRight: '.5rem' }}
               />
             </CCol>

@@ -1,26 +1,35 @@
-// uiReducer.js
-
 // Estado inicial da UI
 const initialUIState = {
-  sidebarShow: true,
+  sidebarShow: true, // Controla visibilidade
+  sidebarUnfoldable: false, // Controla expansão
   theme: 'light',
 }
 
-// Action
-const TOGGLE_SIDEBAR = 'TOGGLE_SIDEBAR'
+// Actions
+const TOGGLE_SIDEBAR_SHOW = 'TOGGLE_SIDEBAR_SHOW'
+const TOGGLE_SIDEBAR_UNFOLDABLE = 'TOGGLE_SIDEBAR_UNFOLDABLE'
 
-// Action Creator
-export const toggleSidebar = () => ({
-  type: TOGGLE_SIDEBAR,
+// Action Creators
+export const toggleSidebarShow = () => ({
+  type: TOGGLE_SIDEBAR_SHOW,
 })
 
-// UI Reducer
+export const toggleSidebarUnfoldable = () => ({
+  type: TOGGLE_SIDEBAR_UNFOLDABLE,
+})
+
+// Reducer
 export const uiReducer = (state = initialUIState, action) => {
   switch (action.type) {
-    case TOGGLE_SIDEBAR:
+    case TOGGLE_SIDEBAR_SHOW:
       return {
         ...state,
-        sidebarShow: !state.sidebarShow,
+        sidebarShow: !state.sidebarShow, // Alterna entre abrir/fechar
+      }
+    case TOGGLE_SIDEBAR_UNFOLDABLE:
+      return {
+        ...state,
+        sidebarUnfoldable: !state.sidebarUnfoldable, // Alterna expansão/colapso
       }
     default:
       return state
