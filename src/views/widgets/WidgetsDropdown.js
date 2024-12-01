@@ -1,14 +1,27 @@
 // components/WidgetsDropdown.jsx
 import React, { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
-import { CRow, CFormSelect, CWidgetStatsB, CCol, CFormSwitch, CSpinner } from '@coreui/react'
-import NoneCharts from '../NoneCharts/NoneCharts'
+import {
+  CRow,
+  CFormSelect,
+  CWidgetStatsB,
+  CCol,
+  CFormSwitch,
+  CSpinner,
+  CButtonGroup,
+  CButton,
+} from '@coreui/react'
+import WarningContainer from '../WarningContainer/WarningContainer'
 import MetricWidget from '../../components/metricWidget'
 import { chartOptions, lineStyles } from '../../utils/chartConfig'
 import { getStyle } from '@coreui/utils'
 import { setId } from '../../hooks/useObservable'
 import Blob from '../../components/Blob'
 import switchBackground from '../../utils/switchBackground.js'
+import BackupModal from '../dashboard/Components/BackupModal.js'
+import DumpAllModal from '../dashboard/Components/DumpAllModal.js'
+import ControlModal from '../dashboard/Components/ControlModal.js'
+import ScheduleModal from '../dashboard/Components/ScheduleModal.js'
 
 const calculateAverage = (values) =>
   (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2)
@@ -18,6 +31,11 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
   const widgetChartRef2 = useRef(null)
   const widgetChartRef3 = useRef(null)
   const intervalRef = useRef(null)
+
+  const [backupVisible, setBackupVisible] = useState(false)
+  const [dumpAllVisible, setDumpAllVisible] = useState(false)
+  const [controlVisible, setControlVisible] = useState(false)
+  const [scheduleVisible, setScheduleVisible] = useState(false)
 
   const [isForward, setIsForward] = useState(false)
   const [autoSwitch, setAutoSwitch] = useState(false)
@@ -131,6 +149,20 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
               changeStatus(metrics['PostgreSQL Status'])
             )}
           </CRow>
+          <CButtonGroup className="mb-3">
+            <CButton color="primary" onClick={() => setBackupVisible(true)}>
+              Backup
+            </CButton>
+            <CButton color="warning" onClick={() => setDumpAllVisible(true)}>
+              Dump All
+            </CButton>
+            <CButton color="danger" onClick={() => setControlVisible(true)}>
+              Controlar
+            </CButton>
+            <CButton color="info" onClick={() => setScheduleVisible(true)}>
+              Agendar Backup
+            </CButton>
+          </CButtonGroup>
           <CRow className={className} xs={{ gutter: 4 }}>
             <MetricWidget
               title="Uso da CPU"
@@ -206,7 +238,7 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
                     {(
                       fillCharts('latency')[fillCharts('latency').length - 2] /
                       fillCharts('latency')[fillCharts('latency').length - 1]
-                    ).toFixed(2)}
+                    ).toFixed(2) || 0}
                     )
                   </span>
                 </>
@@ -288,8 +320,34 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
           </CRow>
         </>
       ) : (
-        <NoneCharts />
+        <WarningContainer
+          title={'Nenhum Monitoramento'}
+          description={'Sem Dados Disponíveis'}
+          text={
+            'Nenhum monitoramento foi selecionado. Por favor, escolha uma máquina virtual (VM) para que os gráficos possam ser gerados.'
+          }
+        />
       )}
+      <BackupModal
+        backupVisible={backupVisible}
+        setBackupVisible={setBackupVisible}
+        metrics={metrics}
+      />
+      <DumpAllModal
+        dumpAllVisible={dumpAllVisible}
+        setDumpAllVisible={setDumpAllVisible}
+        metrics={metrics}
+      />
+      <ControlModal
+        controlVisible={controlVisible}
+        setControlVisible={setControlVisible}
+        metrics={metrics}
+      />
+      <ScheduleModal
+        scheduleVisible={scheduleVisible}
+        setScheduleVisible={setScheduleVisible}
+        metrics={metrics}
+      />
     </>
   )
 }

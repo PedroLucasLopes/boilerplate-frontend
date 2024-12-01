@@ -1,7 +1,7 @@
 import React from 'react'
 import classNames from 'classnames'
 
-import { CCard, CCardBody, CCardFooter, CCol, CProgress, CRow, CSpinner } from '@coreui/react'
+import { CCard, CCardBody, CCol, CRow, CSpinner } from '@coreui/react'
 
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
@@ -40,15 +40,6 @@ const Dashboard = () => {
               </CRow>
               <MainChart fillCharts={fillCharts} />
             </CCardBody>
-            <CCardFooter>
-              <CRow
-                xs={{ cols: 1, gutter: 4 }}
-                sm={{ cols: 2 }}
-                lg={{ cols: 4 }}
-                xl={{ cols: 5 }}
-                className="mb-2 text-center"
-              ></CRow>
-            </CCardFooter>
           </CCard>
         ) : (
           <div

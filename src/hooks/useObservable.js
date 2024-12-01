@@ -1,5 +1,5 @@
 import { BehaviorSubject, timer } from 'rxjs'
-import { switchMap, startWith, catchError, debounceTime, filter } from 'rxjs/operators'
+import { switchMap, startWith, catchError, filter } from 'rxjs/operators'
 import { bind } from '@react-rxjs/core'
 import instance from '../api/instance'
 
