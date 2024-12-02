@@ -20,7 +20,6 @@ import { setApiData } from '../../store/apiReducer'
 import DeleteModal from './Components/DeleteModal'
 import NewVmModal from './Components/NewVmModal'
 import token from '../../utils/token'
-import 'react-toastify/dist/ReactToastify.css'
 
 const Home = () => {
   const [visible, setVisible] = useState(false)

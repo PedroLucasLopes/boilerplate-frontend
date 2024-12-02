@@ -15,7 +15,6 @@ import {
 import PropTypes from 'prop-types'
 import instance from '../../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
 import WarningContainer from '../../WarningContainer/WarningContainer'
 import token from '../../../utils/token'
 import { columns } from '../utils/TableSchedule'

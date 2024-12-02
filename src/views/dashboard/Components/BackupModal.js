@@ -4,7 +4,6 @@ import PropTypes from 'prop-types'
 import instance from '../../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
 import token from '../../../utils/token'
-import 'react-toastify/dist/ReactToastify.css'
 
 const BackupModal = ({ backupVisible, setBackupVisible, metrics }) => {
   const handleBackup = useCallback(async () => {

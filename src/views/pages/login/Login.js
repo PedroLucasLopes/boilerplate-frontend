@@ -17,7 +17,6 @@ import { cilLockLocked, cilUser } from '@coreui/icons'
 import Register from '../register/Register'
 import { ToastContainer } from 'react-toastify'
 import useGetVms from '../../../hooks/useGetVms'
-import 'react-toastify/dist/ReactToastify.css'
 
 const Login = () => {
   const [user, setUser] = useState({ name: '', pass: '' })
