@@ -9,12 +9,15 @@ const BackupModal = ({ backupVisible, setBackupVisible, metrics }) => {
   const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
   const handleBackup = useCallback(async () => {
     try {
-      const data = { ip: metrics['IP'], database: 'postgre' }
-      const response = await instance.post('/backup', data, {
-        headers: {
-          Authorization: `Basic ${encodedCredentials}`,
+      const response = await instance.post(
+        '/backup',
+        { ip: metrics['IP'], database: 'postgre' },
+        {
+          headers: {
+            Authorization: `Basic ${encodedCredentials}`,
+          },
         },
-      })
+      )
       toast.success(response.data.message)
       setBackupVisible(false)
     } catch (e) {

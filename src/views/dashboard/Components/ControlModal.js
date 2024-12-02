@@ -1,5 +1,13 @@
 import React, { useCallback } from 'react'
-import { CModal, CModalHeader, CModalBody, CModalTitle, CModalFooter, CButton } from '@coreui/react'
+import {
+  CModal,
+  CModalHeader,
+  CModalBody,
+  CModalTitle,
+  CModalFooter,
+  CButton,
+  CButtonGroup,
+} from '@coreui/react'
 import PropTypes from 'prop-types'
 import instance from '../../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
@@ -7,21 +15,27 @@ import 'react-toastify/dist/ReactToastify.css'
 
 const ControlModal = ({ controlVisible, setControlVisible, metrics }) => {
   const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
-  const handleBackup = useCallback(async () => {
-    try {
-      const data = { ip: metrics['IP'], action: '' }
-      const response = await instance.post('/control', data, {
-        headers: {
-          Authorization: `Basic ${encodedCredentials}`,
-        },
-      })
-      toast.success(response.data.message)
-      setControlVisible(false)
-    } catch (e) {
-      const errorMessage = e.response?.data?.detail || 'Failed to backup'
-      toast.error(errorMessage)
-    }
-  }, [encodedCredentials, metrics, setControlVisible])
+  const handleBackup = useCallback(
+    async (control) => {
+      try {
+        const response = await instance.post(
+          '/control',
+          { ip: metrics['IP'], action: control },
+          {
+            headers: {
+              Authorization: `Basic ${encodedCredentials}`,
+            },
+          },
+        )
+        toast.success(response.data.message)
+        setControlVisible(false)
+      } catch (e) {
+        const errorMessage = e.response?.data?.detail || 'Failed to backup'
+        toast.error(errorMessage)
+      }
+    },
+    [encodedCredentials, metrics, setControlVisible],
+  )
 
   return (
     <>
@@ -42,9 +56,25 @@ const ControlModal = ({ controlVisible, setControlVisible, metrics }) => {
           <CButton color="secondary" onClick={() => setControlVisible(false)}>
             Fechar
           </CButton>
-          <CButton color="danger" onClick={handleBackup}>
-            Realizar Controle
-          </CButton>
+          <div className="d-flex gap-1">
+            <CButton
+              color="success"
+              onClick={() => handleBackup('start')}
+              disabled={metrics['PostgreSQL Status'] === 'active' ? true : false}
+            >
+              Start
+            </CButton>
+            <CButton
+              color="danger"
+              onClick={() => handleBackup('stop')}
+              disabled={metrics['PostgreSQL Status'] !== 'active' ? true : false}
+            >
+              Stop
+            </CButton>
+            <CButton color="warning" onClick={() => handleBackup('restart')}>
+              Restart
+            </CButton>
+          </div>
         </CModalFooter>
       </CModal>
       <ToastContainer />

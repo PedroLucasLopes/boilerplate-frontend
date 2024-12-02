@@ -12,13 +12,12 @@ const WarningContainer = ({ title, description, text, color = 'primary' }) => {
           <CIcon icon={cilWarning} size="lg" className="text-warning me-2" />
           {title}
         </CCardHeader>
-        {description ||
-          (text && (
-            <CCardBody>
-              {description && <CCardTitle>{description}</CCardTitle>}
-              {text && <CCardText>{text}</CCardText>}
-            </CCardBody>
-          ))}
+        {description && text && (
+          <CCardBody>
+            {description && <CCardTitle>{description}</CCardTitle>}
+            {text && <CCardText>{text}</CCardText>}
+          </CCardBody>
+        )}
       </CCard>
     </CContainer>
   )

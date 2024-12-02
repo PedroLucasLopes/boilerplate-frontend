@@ -19,7 +19,6 @@ import { setId } from '../../hooks/useObservable'
 import Blob from '../../components/Blob'
 import switchBackground from '../../utils/switchBackground.js'
 import BackupModal from '../dashboard/Components/BackupModal.js'
-import DumpAllModal from '../dashboard/Components/DumpAllModal.js'
 import ControlModal from '../dashboard/Components/ControlModal.js'
 import ScheduleModal from '../dashboard/Components/ScheduleModal.js'
 
@@ -33,7 +32,6 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
   const intervalRef = useRef(null)
 
   const [backupVisible, setBackupVisible] = useState(false)
-  const [dumpAllVisible, setDumpAllVisible] = useState(false)
   const [controlVisible, setControlVisible] = useState(false)
   const [scheduleVisible, setScheduleVisible] = useState(false)
 
@@ -87,7 +85,7 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
         if (nextVm) {
           setId(nextVm.id)
         }
-      }, 60000) // 1 minuto
+      }, 10000) // 1 minuto
 
       // Limpeza do intervalo
       return () => clearInterval(intervalRef.current)
@@ -112,6 +110,11 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
     return () =>
       document.documentElement.removeEventListener('ColorSchemeChange', updateChartColors)
   }, [])
+
+  const result =
+    fillCharts('latency')[fillCharts('latency').length - 2] /
+    fillCharts('latency')[fillCharts('latency').length - 1]
+  const formattedResult = isNaN(result) ? 0 : result.toFixed(2)
 
   return (
     <>
@@ -153,10 +156,7 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
             <CButton color="primary" onClick={() => setBackupVisible(true)}>
               Backup
             </CButton>
-            <CButton color="warning" onClick={() => setDumpAllVisible(true)}>
-              Dump All
-            </CButton>
-            <CButton color="danger" onClick={() => setControlVisible(true)}>
+            <CButton color="warning" onClick={() => setControlVisible(true)}>
               Controlar
             </CButton>
             <CButton color="info" onClick={() => setScheduleVisible(true)}>
@@ -233,14 +233,7 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
               value={
                 <>
                   {metrics['Response Time']}&nbsp;
-                  <span className="fs-6 fw-normal">
-                    (
-                    {(
-                      fillCharts('latency')[fillCharts('latency').length - 2] /
-                      fillCharts('latency')[fillCharts('latency').length - 1]
-                    ).toFixed(2) || 0}
-                    )
-                  </span>
+                  <span className="fs-6 fw-normal">({formattedResult})</span>
                 </>
               }
               chartData={{
@@ -285,7 +278,7 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
                   progress={{
                     value: diskSpacePercentageFormat,
                   }}
-                  text={`Espaço em disco disponível (total: ${metrics['Total Disk Space']})`}
+                  text={`Espaço em disco total: ${metrics['Total Disk Space']}`}
                   title="Espaço em Disco"
                   value={`${metrics['Free Disk Space']} (${diskSpacePercentageFormat.toFixed(2)}%)`}
                 />
@@ -311,7 +304,7 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
                   progress={{
                     value: activeConnectionsPercentageFormat,
                   }}
-                  text={`Conexões atuais simultâneas (total: ${metrics['Max Connections']})`}
+                  text={`Conexões totais simultâneas: ${metrics['Max Connections']}`}
                   title="Conexões Ativas"
                   value={`${metrics['Active Connections']} (${activeConnectionsPercentageFormat.toFixed(2)}%)`}
                 />
@@ -331,11 +324,6 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
       <BackupModal
         backupVisible={backupVisible}
         setBackupVisible={setBackupVisible}
-        metrics={metrics}
-      />
-      <DumpAllModal
-        dumpAllVisible={dumpAllVisible}
-        setDumpAllVisible={setDumpAllVisible}
         metrics={metrics}
       />
       <ControlModal

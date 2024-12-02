@@ -10,12 +10,14 @@ import {
   CRow,
   CFormSelect,
   CFormInput,
+  CTable,
 } from '@coreui/react'
 import PropTypes from 'prop-types'
 import instance from '../../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import WarningContainer from '../../WarningContainer/WarningContainer'
+import { columns } from '../utils/TableSchedule'
 
 const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
   const [schedule, setSchedule] = useState({})
@@ -23,7 +25,6 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
   const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
   const handleBackup = useCallback(async () => {
     try {
-      console.log({ ...schedule, ip: metrics['IP'], database: 'postgre' })
       const response = await instance.post(
         '/schedule_backup',
         { ...schedule, ip: metrics['IP'], database: 'postgre' },
@@ -35,28 +36,30 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
       )
       toast.success(response.data.message)
       setScheduleVisible(false)
+      fetchScheduledBackups()
     } catch (e) {
       const errorMessage = e.response?.data?.detail || 'Failed to backup'
       toast.error(errorMessage)
     }
   }, [schedule])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await instance.get('/list_backups', {
-          headers: {
-            Authorization: `Basic ${encodedCredentials}`,
-          },
-        })
-        setAllScheduledBackups(response.data)
-      } catch (e) {
-        const errorMessage = e.response?.data?.detail || 'Failed to list backups'
-        toast.error(errorMessage)
-      }
+  const fetchScheduledBackups = useCallback(async () => {
+    try {
+      const response = await instance.get('/list_backups', {
+        headers: {
+          Authorization: `Basic ${encodedCredentials}`,
+        },
+      })
+      setAllScheduledBackups(response.data)
+    } catch (e) {
+      const errorMessage = e.response?.data?.detail || 'Failed to list backups'
+      toast.error(errorMessage)
     }
-    fetchData()
   }, [])
+
+  useEffect(() => {
+    fetchScheduledBackups()
+  }, [fetchScheduledBackups])
 
   const toggleActive = (frequency) => {
     return schedule && schedule.frequency === frequency ? true : false
@@ -117,11 +120,58 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
     domingo: 'sun',
   }
 
+  function formatBackupSchedule(schedule) {
+    // Mapear os tipos de frequência
+    const frequencyMap = {
+      weekly: 'semanal',
+      daily: 'diário',
+      once: 'uma vez',
+      monthly: 'mensal',
+    }
+
+    // Separar os elementos da string
+    const parts = schedule.split('_')
+
+    // Identificar a frequência e o índice dela
+    const frequencyKey = parts.find((part) => frequencyMap[part])
+    const frequencyIndex = parts.indexOf(frequencyKey)
+
+    // Se não encontrar a frequência, retorne como inválida
+    if (frequencyIndex === -1) {
+      return 'Frequência desconhecida'
+    }
+
+    // Pegar hora e minuto a partir do índice da frequência
+    const hour = parts[frequencyIndex + 1] || '00'
+    const minute = parts[frequencyIndex + 2] || '00'
+
+    // Garantir que hora e minuto tenham dois dígitos
+    const formattedTime = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`
+    const frequency = frequencyMap[frequencyKey]
+
+    // Formatar a string final
+    return `${frequency} - ${formattedTime}`
+  }
+
+  const items =
+    allScheduledBackups &&
+    allScheduledBackups.scheduled_backups.map((schedule) => {
+      return {
+        job_id: formatBackupSchedule(schedule.job_id),
+        database_name: schedule.database_name,
+        vm_ip: schedule.vm_ip,
+        status: schedule.status,
+      }
+    })
+
   return (
     <>
       <CModal
         visible={scheduleVisible}
-        onClose={() => setScheduleVisible(false)}
+        onClose={() => {
+          setScheduleVisible(false)
+          setSchedule({})
+        }}
         aria-labelledby="LiveDemoExampleLabel"
         size="lg"
       >
@@ -167,7 +217,7 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
                 Mensalmente
               </CButton>
             </CButtonGroup>
-            {schedule && (
+            {schedule.frequency && (
               <div className="d-flex align-items-center mb-3 gap-2">
                 <span>Horário do Backup</span>
                 <CFormInput
@@ -217,12 +267,13 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
               onInput={handleNumber}
             />
           )}
-          {allScheduledBackups && allScheduledBackups.length > 0 ? (
+          {allScheduledBackups && allScheduledBackups.scheduled_backups.length > 0 ? (
             <>
               <CRow>
                 <h5>Agendamentos Realizados</h5>
               </CRow>
               <div className="border-top mb-3"></div>
+              <CTable columns={columns} items={items} />
             </>
           ) : (
             <WarningContainer
@@ -232,10 +283,20 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
           )}
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => setScheduleVisible(false)}>
+          <CButton
+            color="secondary"
+            onClick={() => {
+              setScheduleVisible(false)
+              setSchedule({})
+            }}
+          >
             Fechar
           </CButton>
-          <CButton color="info" onClick={handleBackup}>
+          <CButton
+            color="info"
+            onClick={handleBackup}
+            disabled={!schedule.frequency ? true : false}
+          >
             Realizar Agendamento
           </CButton>
         </CModalFooter>
