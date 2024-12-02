@@ -17,12 +17,12 @@ import instance from '../../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import WarningContainer from '../../WarningContainer/WarningContainer'
+import token from '../../../utils/token'
 import { columns } from '../utils/TableSchedule'
 
 const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
   const [schedule, setSchedule] = useState({})
   const [allScheduledBackups, setAllScheduledBackups] = useState()
-  const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
   const handleBackup = useCallback(async () => {
     try {
       const response = await instance.post(
@@ -30,7 +30,7 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
         { ...schedule, ip: metrics['IP'], database: 'postgre' },
         {
           headers: {
-            Authorization: `Basic ${encodedCredentials}`,
+            Authorization: `Basic ${token}`,
           },
         },
       )
@@ -47,7 +47,7 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
     try {
       const response = await instance.get('/list_backups', {
         headers: {
-          Authorization: `Basic ${encodedCredentials}`,
+          Authorization: `Basic ${token}`,
         },
       })
       setAllScheduledBackups(response.data)

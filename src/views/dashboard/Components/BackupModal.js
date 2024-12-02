@@ -3,10 +3,10 @@ import { CModal, CModalHeader, CModalBody, CModalTitle, CModalFooter, CButton } 
 import PropTypes from 'prop-types'
 import instance from '../../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
+import token from '../../../utils/token'
 import 'react-toastify/dist/ReactToastify.css'
 
 const BackupModal = ({ backupVisible, setBackupVisible, metrics }) => {
-  const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
   const handleBackup = useCallback(async () => {
     try {
       const response = await instance.post(
@@ -14,7 +14,7 @@ const BackupModal = ({ backupVisible, setBackupVisible, metrics }) => {
         { ip: metrics['IP'], database: 'postgre' },
         {
           headers: {
-            Authorization: `Basic ${encodedCredentials}`,
+            Authorization: `Basic ${token}`,
           },
         },
       )

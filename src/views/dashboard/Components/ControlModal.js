@@ -11,10 +11,10 @@ import {
 import PropTypes from 'prop-types'
 import instance from '../../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
+import token from '../../../utils/token'
 import 'react-toastify/dist/ReactToastify.css'
 
 const ControlModal = ({ controlVisible, setControlVisible, metrics }) => {
-  const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
   const handleBackup = useCallback(
     async (control) => {
       try {
@@ -23,7 +23,7 @@ const ControlModal = ({ controlVisible, setControlVisible, metrics }) => {
           { ip: metrics['IP'], action: control },
           {
             headers: {
-              Authorization: `Basic ${encodedCredentials}`,
+              Authorization: `Basic ${token}`,
             },
           },
         )
@@ -34,7 +34,7 @@ const ControlModal = ({ controlVisible, setControlVisible, metrics }) => {
         toast.error(errorMessage)
       }
     },
-    [encodedCredentials, metrics, setControlVisible],
+    [token, metrics, setControlVisible],
   )
 
   return (

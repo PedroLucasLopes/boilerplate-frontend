@@ -26,8 +26,8 @@ const Login = () => {
   const { getVms } = useGetVms()
 
   const handleLogin = () => {
-    const encodedCredentials = btoa(`${user.name}:${user.pass}`)
-    getVms(encodedCredentials)
+    const token = btoa(`${user.name}:${user.pass}`)
+    getVms(token)
   }
 
   return !register ? (

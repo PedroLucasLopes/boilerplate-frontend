@@ -19,6 +19,7 @@ import { toast, ToastContainer } from 'react-toastify'
 import { setApiData } from '../../store/apiReducer'
 import DeleteModal from './Components/DeleteModal'
 import NewVmModal from './Components/NewVmModal'
+import token from '../../utils/token'
 import 'react-toastify/dist/ReactToastify.css'
 
 const Home = () => {
@@ -28,13 +29,12 @@ const Home = () => {
 
   const dispatch = useDispatch()
   const vms = useSelector((state) => state.api)
-  const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
 
   const handleDeleteVm = useCallback(async () => {
     try {
       await instance.delete(`/vms/${deleteVm.id}`, {
         headers: {
-          Authorization: `Basic ${encodedCredentials}`,
+          Authorization: `Basic ${token}`,
         },
       })
       // Atualizar a lista de VMs removendo a VM deletada

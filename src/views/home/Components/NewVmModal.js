@@ -29,6 +29,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import instance from '../../../api/instance'
 import 'react-toastify/dist/ReactToastify.css'
 import formatCreateError from '../../../utils/formatCreateError'
+import token from '../../../utils/token'
 import { setApiData } from '../../../store/apiReducer'
 
 const NewVmModal = ({ visibleNew, setVisibleNew }) => {
@@ -38,8 +39,6 @@ const NewVmModal = ({ visibleNew, setVisibleNew }) => {
   const [hasPostgre, setHasPostgre] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const { ipMask } = useIpMask()
-
-  const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
 
   const handleIpChange = (field, value) => {
     const formattedValue = ipMask(value)
@@ -54,7 +53,7 @@ const NewVmModal = ({ visibleNew, setVisibleNew }) => {
         { ...newVm, has_postgre: hasPostgre },
         {
           headers: {
-            Authorization: `Basic ${encodedCredentials}`,
+            Authorization: `Basic ${token}`,
           },
         },
       )
@@ -85,7 +84,7 @@ const NewVmModal = ({ visibleNew, setVisibleNew }) => {
     } finally {
       setIsLoading(false) // Desativa o estado de carregamento.
     }
-  }, [newVm, setVisibleNew, hasPostgre, encodedCredentials, vms, dispatch])
+  }, [newVm, setVisibleNew, hasPostgre, token, vms, dispatch])
 
   return (
     <>

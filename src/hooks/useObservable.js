@@ -2,14 +2,14 @@ import { BehaviorSubject, timer } from 'rxjs'
 import { switchMap, startWith, catchError, filter } from 'rxjs/operators'
 import { bind } from '@react-rxjs/core'
 import instance from '../api/instance'
+import token from '../utils/token'
 
 // Função para buscar dados do monitor
 const fetchData = async (id) => {
-  const encodedCredentials = JSON.parse(localStorage.getItem('reduxAuthState')).user
   try {
     const response = await instance.get(`/monitor/${id}`, {
       headers: {
-        Authorization: `Basic ${encodedCredentials}`,
+        Authorization: `Basic ${token}`,
       },
     })
 
