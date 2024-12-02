@@ -19,4 +19,9 @@ export const columns = [
     label: 'status',
     _props: { scope: 'col' },
   },
+  {
+    key: 'action',
+    label: '#',
+    _props: { scope: 'col' },
+  },
 ]

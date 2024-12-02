@@ -18,10 +18,13 @@ import { toast, ToastContainer } from 'react-toastify'
 import WarningContainer from '../../WarningContainer/WarningContainer'
 import token from '../../../utils/token'
 import { columns } from '../utils/TableSchedule'
+import CIcon from '@coreui/icons-react'
+import { cilTrash } from '@coreui/icons'
 
 const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
   const [schedule, setSchedule] = useState({})
   const [allScheduledBackups, setAllScheduledBackups] = useState()
+
   const handleBackup = useCallback(async () => {
     try {
       const response = await instance.post(
@@ -41,6 +44,23 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
       toast.error(errorMessage)
     }
   }, [schedule])
+
+  const handleDeleteSchedule = useCallback(async (id) => {
+    try {
+      const response = await instance.delete(`/remove_backup/${id}`, {
+        headers: {
+          Authorization: `Basic ${token}`,
+        },
+      })
+
+      toast.success(response.data.message)
+      setScheduleVisible(false)
+      fetchScheduledBackups()
+    } catch (e) {
+      const errorMessage = e.response?.data?.detail || 'Failed to delete backup'
+      toast.error(errorMessage)
+    }
+  })
 
   const fetchScheduledBackups = useCallback(async () => {
     try {
@@ -160,6 +180,13 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
         database_name: schedule.database_name,
         vm_ip: schedule.vm_ip,
         status: schedule.status,
+        action: (
+          <CIcon
+            icon={cilTrash}
+            className="cursor-pointer"
+            onClick={() => handleDeleteSchedule(schedule.job_id)}
+          />
+        ),
       }
     })
 
@@ -272,7 +299,7 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
                 <h5>Agendamentos Realizados</h5>
               </CRow>
               <div className="border-top mb-3"></div>
-              <CTable columns={columns} items={items} />
+              <CTable columns={columns} items={items} className="text-center" />
             </>
           ) : (
             <WarningContainer
