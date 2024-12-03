@@ -85,7 +85,7 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
         if (nextVm) {
           setId(nextVm.id)
         }
-      }, 10000) // 1 minuto
+      }, 60000) // 1 minuto
 
       // Limpeza do intervalo
       return () => clearInterval(intervalRef.current)
