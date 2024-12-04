@@ -135,183 +135,185 @@ const WidgetsDropdown = ({ metrics, loading, monitorId, className, fillCharts })
         </CFormSelect>
       </CRow>
       {Object.keys(metrics).length > 0 ? (
-        <>
-          <CRow className="d-flex align-items-center mb-3">
-            <CCol className="d-flex gap-3 align-items-center ms-auto">
-              <CFormSwitch
-                size="xl"
-                label="Alternar"
-                id="formSwitchCheckDefaultXL"
-                onChange={(e) => handleAutoGetVms(e)}
-                style={{ width: '3rem', marginRight: '.5rem' }}
+        !metrics['Error'] && (
+          <>
+            <CRow className="d-flex align-items-center mb-3">
+              <CCol className="d-flex gap-3 align-items-center ms-auto">
+                <CFormSwitch
+                  size="xl"
+                  label="Alternar"
+                  id="formSwitchCheckDefaultXL"
+                  onChange={(e) => handleAutoGetVms(e)}
+                  style={{ width: '3rem', marginRight: '.5rem' }}
+                />
+              </CCol>
+              {loading ? (
+                <Blob label="Ajustando" style="warning" />
+              ) : (
+                changeStatus(metrics['PostgreSQL Status'])
+              )}
+            </CRow>
+            <CButtonGroup className="mb-3">
+              <CButton color="primary" onClick={() => setBackupVisible(true)}>
+                Backup
+              </CButton>
+              <CButton color="warning" onClick={() => setControlVisible(true)}>
+                Controlar
+              </CButton>
+              <CButton color="info" onClick={() => setScheduleVisible(true)}>
+                Agendar Backup
+              </CButton>
+            </CButtonGroup>
+            <CRow className={className} xs={{ gutter: 4 }}>
+              <MetricWidget
+                title="Uso da CPU"
+                color="primary"
+                value={
+                  <>
+                    {metrics['CPU Usage']}&nbsp;
+                    <span className="fs-6 fw-normal">
+                      (Média: {calculateAverage(formatCpuUsage)}%)
+                    </span>
+                  </>
+                }
+                chartData={{
+                  labels: fillCharts('cpu_usage').map((value) => `${value}%`),
+                  datasets: [
+                    {
+                      label: 'Uso de CPU',
+                      backgroundColor: 'transparent',
+                      borderColor: 'rgba(255,255,255,.55)',
+                      pointBackgroundColor: getStyle('--cui-primary'),
+                      data: formatCpuUsage,
+                      ...lineStyles.default,
+                    },
+                  ],
+                }}
+                chartOptions={chartOptions(
+                  Math.min(...formatCpuUsage) * 0.9,
+                  Math.max(...formatCpuUsage) * 1.1,
+                )}
+                chartRef={widgetChartRef1}
+                loading={loading}
+                spinnerColor="primary"
               />
-            </CCol>
-            {loading ? (
-              <Blob label="Ajustando" style="warning" />
-            ) : (
-              changeStatus(metrics['PostgreSQL Status'])
-            )}
-          </CRow>
-          <CButtonGroup className="mb-3">
-            <CButton color="primary" onClick={() => setBackupVisible(true)}>
-              Backup
-            </CButton>
-            <CButton color="warning" onClick={() => setControlVisible(true)}>
-              Controlar
-            </CButton>
-            <CButton color="info" onClick={() => setScheduleVisible(true)}>
-              Agendar Backup
-            </CButton>
-          </CButtonGroup>
-          <CRow className={className} xs={{ gutter: 4 }}>
-            <MetricWidget
-              title="Uso da CPU"
-              color="primary"
-              value={
-                <>
-                  {metrics['CPU Usage']}&nbsp;
-                  <span className="fs-6 fw-normal">
-                    (Média: {calculateAverage(formatCpuUsage)}%)
-                  </span>
-                </>
-              }
-              chartData={{
-                labels: fillCharts('cpu_usage').map((value) => `${value}%`),
-                datasets: [
-                  {
-                    label: 'Uso de CPU',
-                    backgroundColor: 'transparent',
-                    borderColor: 'rgba(255,255,255,.55)',
-                    pointBackgroundColor: getStyle('--cui-primary'),
-                    data: formatCpuUsage,
-                    ...lineStyles.default,
-                  },
-                ],
-              }}
-              chartOptions={chartOptions(
-                Math.min(...formatCpuUsage) * 0.9,
-                Math.max(...formatCpuUsage) * 1.1,
-              )}
-              chartRef={widgetChartRef1}
-              loading={loading}
-              spinnerColor="primary"
-            />
 
-            <MetricWidget
-              title="Uso de Memória"
-              color="info"
-              value={
-                <>
-                  {metrics['Memory Usage']}&nbsp;
-                  <span className="fs-6 fw-normal">(Total: {metrics['Total Memory'] || 0})</span>
-                </>
-              }
-              chartData={{
-                labels: fillCharts('memory_usage').map((value) => `${value} MB`),
-                datasets: [
-                  {
-                    label: 'Uso de Memória',
-                    backgroundColor: 'transparent',
-                    borderColor: 'rgba(255,255,255,.55)',
-                    pointBackgroundColor: getStyle('--cui-info'),
-                    data: fillCharts('memory_usage'),
-                    ...lineStyles.dashed,
-                  },
-                ],
-              }}
-              chartOptions={chartOptions(
-                Math.min(...fillCharts('memory_usage')) * 0.9,
-                Math.max(...fillCharts('memory_usage')) * 1.1,
-              )}
-              chartRef={widgetChartRef2}
-              loading={loading}
-              spinnerColor="info"
-            />
-            <MetricWidget
-              title="Tempo de Resposta"
-              color="warning"
-              value={
-                <>
-                  {metrics['Response Time']}&nbsp;
-                  <span className="fs-6 fw-normal">({formattedResult})</span>
-                </>
-              }
-              chartData={{
-                labels: fillCharts('latency').map((value) => `${value.toFixed(2)}ms`),
-                datasets: [
-                  {
-                    label: 'Latência',
-                    backgroundColor: 'rgba(255,255,255,.2)',
-                    borderColor: 'rgba(255,255,255,.55)',
-                    data: fillCharts('latency').map((value) => value.toFixed(2)),
-                    ...lineStyles.wave,
-                  },
-                ],
-              }}
-              chartOptions={chartOptions(
-                Math.min(...fillCharts('latency')) * 0.9,
-                Math.max(...fillCharts('latency')) * 1.1,
-              )}
-              chartRef={widgetChartRef3}
-              loading={loading}
-              spinnerColor="warning"
-            />
-          </CRow>
-          <CRow>
-            <CCol xs={6}>
-              {loading ? (
-                <div
-                  className="d-flex justify-content-center align-items-center"
-                  style={{
-                    height: '8rem',
-                    backgroundColor: switchBackground['danger'],
-                    borderRadius: '5px',
-                  }}
-                >
-                  <CSpinner color="danger" variant="grow" />
-                </div>
-              ) : (
-                <CWidgetStatsB
-                  className="mb-3"
-                  color="danger"
-                  inverse
-                  progress={{
-                    value: diskSpacePercentageFormat,
-                  }}
-                  text={`Espaço em disco total: ${metrics['Total Disk Space']}`}
-                  title="Espaço em Disco"
-                  value={`${metrics['Free Disk Space']} (${diskSpacePercentageFormat.toFixed(2)}%)`}
-                />
-              )}
-            </CCol>
-            <CCol xs={6}>
-              {loading ? (
-                <div
-                  className="d-flex justify-content-center align-items-center"
-                  style={{
-                    height: '8rem',
-                    backgroundColor: switchBackground['success'],
-                    borderRadius: '5px',
-                  }}
-                >
-                  <CSpinner color="success" variant="grow" />
-                </div>
-              ) : (
-                <CWidgetStatsB
-                  className="mb-3"
-                  color="success"
-                  inverse
-                  progress={{
-                    value: activeConnectionsPercentageFormat,
-                  }}
-                  text={`Conexões totais simultâneas: ${metrics['Max Connections']}`}
-                  title="Conexões Ativas"
-                  value={`${metrics['Active Connections']} (${activeConnectionsPercentageFormat.toFixed(2)}%)`}
-                />
-              )}
-            </CCol>
-          </CRow>
-        </>
+              <MetricWidget
+                title="Uso de Memória"
+                color="info"
+                value={
+                  <>
+                    {metrics['Memory Usage']}&nbsp;
+                    <span className="fs-6 fw-normal">(Total: {metrics['Total Memory'] || 0})</span>
+                  </>
+                }
+                chartData={{
+                  labels: fillCharts('memory_usage').map((value) => `${value} MB`),
+                  datasets: [
+                    {
+                      label: 'Uso de Memória',
+                      backgroundColor: 'transparent',
+                      borderColor: 'rgba(255,255,255,.55)',
+                      pointBackgroundColor: getStyle('--cui-info'),
+                      data: fillCharts('memory_usage'),
+                      ...lineStyles.dashed,
+                    },
+                  ],
+                }}
+                chartOptions={chartOptions(
+                  Math.min(...fillCharts('memory_usage')) * 0.9,
+                  Math.max(...fillCharts('memory_usage')) * 1.1,
+                )}
+                chartRef={widgetChartRef2}
+                loading={loading}
+                spinnerColor="info"
+              />
+              <MetricWidget
+                title="Tempo de Resposta"
+                color="warning"
+                value={
+                  <>
+                    {metrics['Response Time']}&nbsp;
+                    <span className="fs-6 fw-normal">({formattedResult})</span>
+                  </>
+                }
+                chartData={{
+                  labels: fillCharts('latency').map((value) => `${value.toFixed(2)}ms`),
+                  datasets: [
+                    {
+                      label: 'Latência',
+                      backgroundColor: 'rgba(255,255,255,.2)',
+                      borderColor: 'rgba(255,255,255,.55)',
+                      data: fillCharts('latency').map((value) => value.toFixed(2)),
+                      ...lineStyles.wave,
+                    },
+                  ],
+                }}
+                chartOptions={chartOptions(
+                  Math.min(...fillCharts('latency')) * 0.9,
+                  Math.max(...fillCharts('latency')) * 1.1,
+                )}
+                chartRef={widgetChartRef3}
+                loading={loading}
+                spinnerColor="warning"
+              />
+            </CRow>
+            <CRow>
+              <CCol xs={6}>
+                {loading ? (
+                  <div
+                    className="d-flex justify-content-center align-items-center"
+                    style={{
+                      height: '8rem',
+                      backgroundColor: switchBackground['danger'],
+                      borderRadius: '5px',
+                    }}
+                  >
+                    <CSpinner color="danger" variant="grow" />
+                  </div>
+                ) : (
+                  <CWidgetStatsB
+                    className="mb-3"
+                    color="danger"
+                    inverse
+                    progress={{
+                      value: diskSpacePercentageFormat,
+                    }}
+                    text={`Espaço em disco total: ${metrics['Total Disk Space']}`}
+                    title="Espaço em Disco"
+                    value={`${metrics['Free Disk Space']} (${diskSpacePercentageFormat.toFixed(2)}%)`}
+                  />
+                )}
+              </CCol>
+              <CCol xs={6}>
+                {loading ? (
+                  <div
+                    className="d-flex justify-content-center align-items-center"
+                    style={{
+                      height: '8rem',
+                      backgroundColor: switchBackground['success'],
+                      borderRadius: '5px',
+                    }}
+                  >
+                    <CSpinner color="success" variant="grow" />
+                  </div>
+                ) : (
+                  <CWidgetStatsB
+                    className="mb-3"
+                    color="success"
+                    inverse
+                    progress={{
+                      value: activeConnectionsPercentageFormat,
+                    }}
+                    text={`Conexões totais simultâneas: ${metrics['Max Connections']}`}
+                    title="Conexões Ativas"
+                    value={`${metrics['Active Connections']} (${activeConnectionsPercentageFormat.toFixed(2)}%)`}
+                  />
+                )}
+              </CCol>
+            </CRow>
+          </>
+        )
       ) : (
         <WarningContainer
           title={'Nenhum Monitoramento'}

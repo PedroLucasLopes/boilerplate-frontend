@@ -8,6 +8,7 @@ import MainChart from './MainChart'
 import useMonitor from '../../hooks/useMonitor'
 
 import switchBackground from '../../utils/switchBackground'
+import WarningContainer from '../WarningContainer/WarningContainer'
 
 const Dashboard = () => {
   const monitorId = Number(localStorage.getItem('monitorId'))
@@ -28,19 +29,27 @@ const Dashboard = () => {
       />
       {Object.keys(metrics).length > 0 &&
         (!loading ? (
-          <CCard className="mb-4">
-            <CCardBody>
-              <CRow>
-                <CCol sm={5}>
-                  <h4 id="traffic" className="card-title mb-0">
-                    Informações do Banco
-                  </h4>
-                  <div className="small text-body-secondary">Últimos Minutos</div>
-                </CCol>
-              </CRow>
-              <MainChart fillCharts={fillCharts} />
-            </CCardBody>
-          </CCard>
+          !metrics['Error'] ? (
+            <CCard className="mb-4">
+              <CCardBody>
+                <CRow>
+                  <CCol sm={5}>
+                    <h4 id="traffic" className="card-title mb-0">
+                      Informações do Banco
+                    </h4>
+                    <div className="small text-body-secondary">Últimos Minutos</div>
+                  </CCol>
+                </CRow>
+                <MainChart fillCharts={fillCharts} />
+              </CCardBody>
+            </CCard>
+          ) : (
+            <WarningContainer
+              title={'Não encontramos nenhum dado!'}
+              description={`Sem dados disponíveis em ${metrics['Name']} (${metrics['IP']})`}
+              text={'Parece que essa VM não tem dados para serem exibidos.'}
+            />
+          )
         ) : (
           <div
             className="d-flex justify-content-center align-items-center"
