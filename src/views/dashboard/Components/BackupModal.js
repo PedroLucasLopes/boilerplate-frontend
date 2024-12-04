@@ -59,7 +59,7 @@ const BackupModal = ({ backupVisible, setBackupVisible, metrics }) => {
                   </option>
                 ))}
             </CFormSelect>
-            {metrics['databases'].length > 0 && (
+            {metrics['databases'] && (
               <CFormSelect
                 value={backupVm && backupVm.database}
                 onChange={(e) =>
@@ -67,6 +67,7 @@ const BackupModal = ({ backupVisible, setBackupVisible, metrics }) => {
                 }
                 aria-label="VM Select Input"
               >
+                <option defaultValue>{backupVm.database}</option>
                 {metrics['databases'].map((database, i) => (
                   <option value={database} key={i}>
                     {database}
