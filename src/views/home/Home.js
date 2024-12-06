@@ -18,16 +18,27 @@ import instance from '../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
 import { setApiData } from '../../store/apiReducer'
 import DeleteModal from './Components/DeleteModal'
+import DeleteScheduleModal from './Components/DeleteScheduleModal'
 import NewVmModal from './Components/NewVmModal'
 import token from '../../utils/token'
+import useGetListBackup from '../../hooks/useGetListBackup'
+import Blob from '../../components/Blob'
+import formatBackupSchedule from '../../utils/formatBackupSchedule'
+import WarningContainer from '../WarningContainer/WarningContainer'
 
 const Home = () => {
   const [visible, setVisible] = useState(false)
+  const [visibleSchedule, setVisibleSchedule] = useState(false)
   const [visibleNew, setVisibleNew] = useState(false)
   const [deleteVm, setDeleteVm] = useState({})
+  const [deleteSchedule, setDeleteSchedule] = useState({})
 
   const dispatch = useDispatch()
   const vms = useSelector((state) => state.api)
+
+  const { data: scheduledBackups } = useGetListBackup()
+  const savedBackups = JSON.parse(sessionStorage.getItem('scheduled_backups')) || []
+  const schedules = scheduledBackups || savedBackups
 
   const handleDeleteVm = useCallback(async () => {
     try {
@@ -44,6 +55,22 @@ const Home = () => {
       toast.error(`Erro ao deletar a VM: ${e}`)
     }
   }, [deleteVm, dispatch, vms])
+
+  const handleDeleteSchedule = useCallback(async () => {
+    try {
+      const response = await instance.delete(`/remove_backup/${deleteSchedule.vm_ip}`, {
+        headers: {
+          Authorization: `Basic ${token}`,
+        },
+      })
+
+      toast.success(response.data.message)
+      setScheduleVisible(false)
+    } catch (e) {
+      const errorMessage = e.response?.data?.detail || 'Failed to delete schedule'
+      toast.error(errorMessage)
+    }
+  })
 
   const navigate = useNavigate()
 
@@ -102,7 +129,7 @@ const Home = () => {
                     size="lg"
                     className="cursor-pointer"
                     onClick={() => {
-                      setVisible(true)
+                      setVisibleSchedule(true)
                       setDeleteVm(vm)
                     }}
                   />
@@ -112,11 +139,68 @@ const Home = () => {
           ))}
         <ToastContainer />
       </div>
+      <div className="d-flex justify-content-between mb-2 mt-2">
+        <h2>Backups Agendados</h2>
+        {/* <CButton
+          color="primary"
+          onClick={() => setVisibleNew(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '5px', width: '12rem' }}
+        >
+          <div className="mr-2">
+            <CIcon icon={cilPlus} />
+          </div>
+          Cadastrar Nova VM
+        </CButton> */}
+      </div>
+      <div className="border-top mb-3"></div>
+      {schedules && schedules.scheduled_backups.length > 0 ? (
+        <div className="row g-3">
+          {schedules.scheduled_backups.map((backup) => (
+            <div className="col-12 col-md-6 col-lg-4 col-xl-3" key={backup.job_id}>
+              <CCard className="h-100">
+                <CCardBody>
+                  <div className="d-flex w-100 justify-content-between align-items-center">
+                    <CCardTitle>{formatBackupSchedule(backup.job_id)}</CCardTitle>
+                    <CCardSubtitle className="mb-2 text-body-secondary">
+                      {backup.vm_ip}
+                    </CCardSubtitle>
+                  </div>
+                  <div className="border-top"></div>
+                </CCardBody>
+                <CCardFooter className="d-flex flex-row align-items-center justify-content-between">
+                  {backup.status === 'agendado' ? (
+                    <Blob label={backup.status} style="success" />
+                  ) : (
+                    <Blob label={backup.status} style="danger" />
+                  )}
+                  <CIcon
+                    icon={cilTrash}
+                    size="lg"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setVisibleSchedule(true)
+                      setDeleteSchedule(backup)
+                    }}
+                  />
+                </CCardFooter>
+              </CCard>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <WarningContainer title="Não há Backups agendados no momento!" color="transparent" />
+      )}
       <DeleteModal
         deleteVm={deleteVm}
         visible={visible}
         setVisible={setVisible}
         handleDeleteVm={handleDeleteVm}
+      />
+      <DeleteScheduleModal
+        deleteSchedule={deleteSchedule}
+        visible={visibleSchedule}
+        setVisible={setVisibleSchedule}
+        handleDeleteSchedule={handleDeleteSchedule}
       />
       <NewVmModal visibleNew={visibleNew} setVisibleNew={setVisibleNew} />
     </>

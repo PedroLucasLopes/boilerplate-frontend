@@ -1,5 +1,4 @@
 import React from 'react'
-import classNames from 'classnames'
 
 import { CCard, CCardBody, CCol, CRow, CSpinner } from '@coreui/react'
 
@@ -48,6 +47,7 @@ const Dashboard = () => {
               title={'Não encontramos nenhum dado!'}
               description={`Sem dados disponíveis em ${metrics['Name']} (${metrics['IP']})`}
               text={'Parece que essa VM não tem dados para serem exibidos.'}
+              color="danger"
             />
           )
         ) : (
