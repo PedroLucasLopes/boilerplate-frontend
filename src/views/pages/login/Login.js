@@ -14,13 +14,11 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
-import Register from '../register/Register'
 import { ToastContainer } from 'react-toastify'
 import useGetVms from '../../../hooks/useGetVms'
 
 const Login = () => {
   const [user, setUser] = useState({ name: '', pass: '' })
-  const [register, setRegister] = useState(false)
 
   const { getVms } = useGetVms()
 
@@ -29,7 +27,7 @@ const Login = () => {
     getVms(token)
   }
 
-  return !register ? (
+  return (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
       <CContainer>
         <CRow className="justify-content-center">
@@ -90,8 +88,6 @@ const Login = () => {
       </CContainer>
       <ToastContainer />
     </div>
-  ) : (
-    <Register setRegister={setRegister} />
   )
 }
 

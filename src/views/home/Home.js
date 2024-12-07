@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   CCard,
   CCardTitle,
@@ -8,15 +8,14 @@ import {
   CCardFooter,
   CButton,
 } from '@coreui/react'
-import { cilTrash, cilPlus } from '@coreui/icons'
-import CIcon from '@coreui/icons-react'
-import { cibPostgresql } from '@coreui/icons'
+import { cilTrash, cilPlus, cibPostgresql } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux'
 import { setId } from '../../hooks/useObservable'
 import { useNavigate } from 'react-router-dom'
-import instance from '../../api/instance'
 import { toast, ToastContainer } from 'react-toastify'
 import { setApiData } from '../../store/apiReducer'
+import CIcon from '@coreui/icons-react'
+import instance from '../../api/instance'
 import DeleteModal from './Components/DeleteModal'
 import DeleteScheduleModal from './Components/DeleteScheduleModal'
 import NewVmModal from './Components/NewVmModal'
@@ -25,18 +24,26 @@ import useGetListBackup from '../../hooks/useGetListBackup'
 import Blob from '../../components/Blob'
 import formatBackupSchedule from '../../utils/formatBackupSchedule'
 import WarningContainer from '../WarningContainer/WarningContainer'
+import Pagination from '../../components/Pagination'
+import useGetVms from '../../hooks/useGetVms'
+import { setPagination } from '../../store/paginationReducer'
 
 const Home = () => {
+  const dispatch = useDispatch()
+
   const [visible, setVisible] = useState(false)
   const [visibleSchedule, setVisibleSchedule] = useState(false)
   const [visibleNew, setVisibleNew] = useState(false)
+
   const [deleteVm, setDeleteVm] = useState({})
   const [deleteSchedule, setDeleteSchedule] = useState({})
 
-  const dispatch = useDispatch()
   const vms = useSelector((state) => state.api)
+  const pagination = useSelector((state) => state.pag)
+  const { getVms } = useGetVms()
 
   const { data: scheduledBackups } = useGetListBackup()
+
   const savedBackups = JSON.parse(sessionStorage.getItem('scheduled_backups')) || []
   const schedules = scheduledBackups || savedBackups
 
@@ -71,6 +78,15 @@ const Home = () => {
       toast.error(errorMessage)
     }
   })
+
+  const handlePageChange = (page) => {
+    dispatch(setPagination({ ...pagination, page }))
+    getVms(token, page)
+  }
+
+  useEffect(() => {
+    JSON.parse(sessionStorage.getItem('reduxApiState')) === null && getVms(token)
+  }, [])
 
   const navigate = useNavigate()
 
@@ -129,7 +145,7 @@ const Home = () => {
                     size="lg"
                     className="cursor-pointer"
                     onClick={() => {
-                      setVisibleSchedule(true)
+                      setVisible(true)
                       setDeleteVm(vm)
                     }}
                   />
@@ -137,7 +153,11 @@ const Home = () => {
               </CCard>
             </div>
           ))}
-        <ToastContainer />
+        <Pagination
+          page={pagination.page}
+          total_pages={pagination.total_pages}
+          onPageChange={handlePageChange}
+        />
       </div>
       <div className="d-flex justify-content-between mb-2 mt-2">
         <h2>Backups Agendados</h2>
@@ -153,7 +173,7 @@ const Home = () => {
         </CButton> */}
       </div>
       <div className="border-top mb-3"></div>
-      {schedules && schedules.scheduled_backups.length > 0 ? (
+      {schedules.scheduled_backups && schedules.scheduled_backups.length > 0 ? (
         <div className="row g-3">
           {schedules.scheduled_backups.map((backup) => (
             <div className="col-12 col-md-6 col-lg-4 col-xl-3" key={backup.job_id}>
@@ -203,6 +223,7 @@ const Home = () => {
         handleDeleteSchedule={handleDeleteSchedule}
       />
       <NewVmModal visibleNew={visibleNew} setVisibleNew={setVisibleNew} />
+      <ToastContainer />
     </>
   )
 }

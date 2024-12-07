@@ -7,13 +7,13 @@ const useGetListBackup = () => {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-
   const getBackups = async () => {
     try {
       setLoading(true)
+
       const response = await instance.get('/list_backups', {
         headers: {
-          Authorization: `Basic ${token}`,
+          Authorization: `Basic ${token && token}`,
         },
       })
       sessionStorage.setItem('scheduled_backups', JSON.stringify(response.data))

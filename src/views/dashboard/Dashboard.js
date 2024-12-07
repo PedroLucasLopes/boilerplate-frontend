@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { CCard, CCardBody, CCol, CRow, CSpinner } from '@coreui/react'
 
@@ -9,13 +9,21 @@ import useMonitor from '../../hooks/useMonitor'
 import switchBackground from '../../utils/switchBackground'
 import WarningContainer from '../WarningContainer/WarningContainer'
 
+import token from '../../utils/token'
+import useGetVms from '../../hooks/useGetVms'
+
 const Dashboard = () => {
+  const { getVms } = useGetVms()
   const monitorId = Number(localStorage.getItem('monitorId'))
   const { data, loading } = useMonitor(monitorId)
   const savedData = JSON.parse(sessionStorage.getItem('monitor')) || {}
   const metrics = data || savedData
 
   const fillCharts = (metric) => metrics?.['Metrics History']?.[metric] || []
+
+  useEffect(() => {
+    JSON.parse(sessionStorage.getItem('reduxApiState')) === null && getVms(token)
+  }, [])
 
   return (
     <>

@@ -1,8 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { CCol, CWidgetStatsA, CSpinner } from '@coreui/react'
+import { CCol, CWidgetStatsA } from '@coreui/react'
 import { CChartLine } from '@coreui/react-chartjs'
-import switchBackground from '../utils/switchBackground'
+import LoadingContainer from './LoadingContainer'
 
 const MetricWidget = ({
   title,
@@ -17,16 +17,7 @@ const MetricWidget = ({
   <CCol sm={6} xl={4} xxl={4}>
     {loading ? (
       // Exibe o spinner centralizado quando "loading" for true
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{
-          height: '10rem',
-          backgroundColor: switchBackground[spinnerColor],
-          borderRadius: '5px',
-        }}
-      >
-        <CSpinner color={spinnerColor} variant="grow" />
-      </div>
+      <LoadingContainer spinnerColor={spinnerColor} />
     ) : (
       // Renderiza o widget normalmente quando "loading" for false
       <CWidgetStatsA

@@ -15,7 +15,6 @@ const initialApiState = [
 
 // Actions
 const SET_API_DATA = 'SET_API_DATA'
-const DELETE_API_DATA = 'DELETE_API_DATA'
 
 // Action Creator
 export const setApiData = (data) => ({
