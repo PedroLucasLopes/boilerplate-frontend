@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import {
   CButton,
   CCard,
@@ -18,14 +18,13 @@ import { ToastContainer } from 'react-toastify'
 import useGetVms from '../../../hooks/useGetVms'
 
 const Login = () => {
+  const { getVms } = useGetVms()
   const [user, setUser] = useState({ name: '', pass: '' })
 
-  const { getVms } = useGetVms()
-
-  const handleLogin = () => {
+  const handleLogin = useCallback(() => {
     const token = btoa(`${user.name}:${user.pass}`)
     getVms(token)
-  }
+  }, [user])
 
   return (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
@@ -36,7 +35,7 @@ const Login = () => {
               <CCard className="p-4">
                 <CCardBody>
                   <CForm>
-                    <h1>Login</h1>
+                    <h1>Entrar</h1>
                     <p className="text-body-secondary">Entrar na sua conta</p>
                     <CInputGroup className="mb-3">
                       <CInputGroupText>
@@ -45,12 +44,12 @@ const Login = () => {
                       <CFormInput
                         placeholder="Username"
                         autoComplete="username"
-                        onBlur={(e) =>
+                        onBlur={(e) => {
                           setUser((prev) => ({
                             ...prev,
                             name: e.target.value,
                           }))
-                        }
+                        }}
                       />
                     </CInputGroup>
                     <CInputGroup className="mb-4">
@@ -72,7 +71,7 @@ const Login = () => {
                     <CRow>
                       <CCol xs={6}>
                         <CButton color="primary" className="px-4" onClick={handleLogin}>
-                          Login
+                          Entrar
                         </CButton>
                       </CCol>
                     </CRow>

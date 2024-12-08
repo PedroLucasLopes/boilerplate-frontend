@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import {
   CCard,
   CCardTitle,
@@ -27,9 +27,14 @@ import WarningContainer from '../WarningContainer/WarningContainer'
 import Pagination from '../../components/Pagination'
 import useGetVms from '../../hooks/useGetVms'
 import { setPagination } from '../../store/paginationReducer'
+import LoadingContainer from '../../components/LoadingContainer'
 
 const Home = () => {
   const dispatch = useDispatch()
+  const { getVms, loading } = useGetVms()
+
+  const vms = useSelector((state) => state.api)
+  const pagination = useSelector((state) => state.pag)
 
   const [visible, setVisible] = useState(false)
   const [visibleSchedule, setVisibleSchedule] = useState(false)
@@ -37,10 +42,6 @@ const Home = () => {
 
   const [deleteVm, setDeleteVm] = useState({})
   const [deleteSchedule, setDeleteSchedule] = useState({})
-
-  const vms = useSelector((state) => state.api)
-  const pagination = useSelector((state) => state.pag)
-  const { getVms } = useGetVms()
 
   const { data: scheduledBackups } = useGetListBackup()
 
@@ -86,7 +87,7 @@ const Home = () => {
 
   useEffect(() => {
     JSON.parse(sessionStorage.getItem('reduxApiState')) === null && getVms(token)
-  }, [])
+  }, [getVms])
 
   const navigate = useNavigate()
 
@@ -107,7 +108,8 @@ const Home = () => {
       </div>
       <div className="border-top mb-3"></div>
       <div className="row g-3">
-        {vms &&
+        {!loading ? (
+          vms &&
           vms.map((vm, i) => (
             <div className="col-12 col-md-6 col-lg-4 col-xl-3" key={i}>
               <CCard className="w-100">
@@ -152,7 +154,10 @@ const Home = () => {
                 </CCardFooter>
               </CCard>
             </div>
-          ))}
+          ))
+        ) : (
+          <LoadingContainer />
+        )}
         <Pagination
           page={pagination.page}
           total_pages={pagination.total_pages}

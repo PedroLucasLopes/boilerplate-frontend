@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { CPagination, CPaginationItem } from '@coreui/react'
 
-const Pagination = ({ total_items, page, page_size, total_pages, onPageChange }) => {
+const Pagination = ({ page, total_pages, onPageChange }) => {
   const getPages = () => {
     const pages = []
     for (let i = 1; i <= total_pages; i++) {
@@ -12,7 +12,7 @@ const Pagination = ({ total_items, page, page_size, total_pages, onPageChange })
   }
 
   return (
-    <CPagination aria-label="Page navigation example">
+    <CPagination aria-label="Page navigation example" className="flex justify-content-center">
       <CPaginationItem
         aria-label="Previous"
         disabled={page === 1}

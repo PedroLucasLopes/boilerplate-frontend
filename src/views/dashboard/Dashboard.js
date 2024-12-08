@@ -9,8 +9,9 @@ import useMonitor from '../../hooks/useMonitor'
 import switchBackground from '../../utils/switchBackground'
 import WarningContainer from '../WarningContainer/WarningContainer'
 
-import token from '../../utils/token'
 import useGetVms from '../../hooks/useGetVms'
+
+import token from '../../utils/token'
 
 const Dashboard = () => {
   const { getVms } = useGetVms()
@@ -23,7 +24,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     JSON.parse(sessionStorage.getItem('reduxApiState')) === null && getVms(token)
-  }, [])
+  }, [getVms])
 
   return (
     <>

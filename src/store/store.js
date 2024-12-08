@@ -29,17 +29,17 @@ const store = createStore(rootReducer, {
 store.subscribe(() => {
   const { auth, api, pag } = store.getState()
 
-  if (!auth.isAuthenticated) {
+  if (auth.isAuthenticated) {
+    saveAuthState(auth) // Salva o estado do auth
+    saveApiState(api) // Salva o estado da API no sessionStorage
+    savePaginationState(pag) // Salva a paginação no sessionStorage
+  } else {
     localStorage.removeItem('reduxAuthState')
     localStorage.removeItem('monitorId')
     sessionStorage.removeItem('reduxApiState')
     sessionStorage.removeItem('monitor')
     sessionStorage.removeItem('scheduled_backups')
     sessionStorage.removeItem('pagination')
-  } else {
-    saveAuthState(auth) // Salva o estado do auth
-    saveApiState(api) // Salva o estado da API no sessionStorage
-    savePaginationState(pag) // Salva a paginação no sessionStorage
   }
 })
 
