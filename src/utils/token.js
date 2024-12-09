@@ -1,4 +1,6 @@
-const tokenExists = JSON.parse(localStorage.getItem('reduxAuthState'))
-const token = tokenExists && tokenExists.user
+const getToken = () => {
+  const tokenExists = JSON.parse(localStorage.getItem('reduxAuthState'))
+  return tokenExists?.user || null
+}
 
-export default token
+export default getToken

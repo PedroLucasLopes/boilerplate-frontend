@@ -22,7 +22,7 @@ const ControlModal = ({ controlVisible, setControlVisible, metrics }) => {
           { ip: metrics['IP'], action: control },
           {
             headers: {
-              Authorization: `Basic ${token}`,
+              Authorization: `Basic ${token()}`,
             },
           },
         )

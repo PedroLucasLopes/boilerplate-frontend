@@ -23,7 +23,7 @@ const Dashboard = () => {
   const fillCharts = (metric) => metrics?.['Metrics History']?.[metric] || []
 
   useEffect(() => {
-    JSON.parse(sessionStorage.getItem('reduxApiState')) === null && getVms(token)
+    JSON.parse(sessionStorage.getItem('reduxApiState')) === null && getVms(token())
   }, [getVms])
 
   return (

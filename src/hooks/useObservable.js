@@ -9,7 +9,7 @@ const fetchData = async (id) => {
   try {
     const response = await instance.get(`/monitor/${id}`, {
       headers: {
-        Authorization: `Basic ${token}`,
+        Authorization: `Basic ${token()}`,
       },
     })
 

@@ -35,7 +35,7 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
         { ...schedule, ip: metrics['IP'], database: 'postgre' },
         {
           headers: {
-            Authorization: `Basic ${token}`,
+            Authorization: `Basic ${token()}`,
           },
         },
       )

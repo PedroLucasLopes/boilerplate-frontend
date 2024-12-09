@@ -13,7 +13,7 @@ const useGetListBackup = () => {
 
       const response = await instance.get('/list_backups', {
         headers: {
-          Authorization: `Basic ${token && token}`,
+          Authorization: `Basic ${token()}`,
         },
       })
       sessionStorage.setItem('scheduled_backups', JSON.stringify(response.data))

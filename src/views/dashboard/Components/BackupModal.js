@@ -20,7 +20,7 @@ const BackupModal = ({ backupVisible, setBackupVisible, metrics }) => {
     try {
       const response = await instance.post('/backup', backupVm, {
         headers: {
-          Authorization: `Basic ${token}`,
+          Authorization: `Basic ${token()}`,
         },
       })
       toast.success(response.data.message)

@@ -52,7 +52,7 @@ const NewVmModal = ({ visibleNew, setVisibleNew }) => {
         { ...newVm, has_postgre: hasPostgre },
         {
           headers: {
-            Authorization: `Basic ${token}`,
+            Authorization: `Basic ${token()}`,
           },
         },
       )

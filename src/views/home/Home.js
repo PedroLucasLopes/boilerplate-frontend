@@ -52,7 +52,7 @@ const Home = () => {
     try {
       await instance.delete(`/vms/${deleteVm.id}`, {
         headers: {
-          Authorization: `Basic ${token}`,
+          Authorization: `Basic ${token()}`,
         },
       })
       // Atualizar a lista de VMs removendo a VM deletada
