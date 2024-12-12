@@ -43,7 +43,7 @@ const Home = () => {
   const [deleteVm, setDeleteVm] = useState({})
   const [deleteSchedule, setDeleteSchedule] = useState({})
 
-  const { data: scheduledBackups } = useGetListBackup()
+  const { data: scheduledBackups, setData: setScheduledBackups } = useGetListBackup()
 
   const savedBackups = JSON.parse(sessionStorage.getItem('scheduled_backups')) || []
   const schedules = scheduledBackups || savedBackups
@@ -66,14 +66,19 @@ const Home = () => {
 
   const handleDeleteSchedule = useCallback(async () => {
     try {
-      const response = await instance.delete(`/remove_backup/${deleteSchedule.vm_ip}`, {
+      const response = await instance.delete(`/remove_backup/${deleteSchedule.job_id}`, {
         headers: {
-          Authorization: `Basic ${token}`,
+          Authorization: `Basic ${token()}`,
         },
       })
-
       toast.success(response.data.message)
-      setScheduleVisible(false)
+      setVisibleSchedule(false)
+      setScheduledBackups((prev) => ({
+        ...prev,
+        scheduled_backups: prev.scheduled_backups.filter(
+          (backup) => backup.job_id !== deleteSchedule.job_id,
+        ),
+      }))
     } catch (e) {
       const errorMessage = e.response?.data?.detail || 'Failed to delete schedule'
       toast.error(errorMessage)

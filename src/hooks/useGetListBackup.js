@@ -31,7 +31,7 @@ const useGetListBackup = () => {
     getBackups()
   }, [])
 
-  return { data, loading, error, getBackups }
+  return { data, loading, error, getBackups, setData }
 }
 
 export default useGetListBackup

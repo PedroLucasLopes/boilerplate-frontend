@@ -122,15 +122,15 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
                 <CFormInput
                   placeholder={hours}
                   style={{ width: '3rem' }}
-                  value={schedule.hour || ''}
-                  onChange={(e) => formatTime(e.target.value, 'hour', 23)}
+                  defaultValue={schedule.hour || ''}
+                  onChange={(e) => formatTime(Number(e.target.value), 'hour', 23, setSchedule)}
                 />
                 <span>:</span>
                 <CFormInput
                   placeholder={minutes}
                   style={{ width: '3rem' }}
                   value={schedule.minute || ''}
-                  onChange={(e) => formatTime(e.target.value, 'minute', 59)}
+                  onChange={(e) => formatTime(Number(e.target.value), 'minute', 59, setSchedule)}
                 />
               </div>
             )}
