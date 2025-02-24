@@ -32,7 +32,7 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
     try {
       const response = await instance.post(
         '/schedule_backup',
-        { ...schedule, ip: metrics['IP'], database: 'postgre' },
+        { ...schedule, ip: metrics['IP'] },
         {
           headers: {
             Authorization: `Basic ${token()}`,
@@ -117,21 +117,39 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
               </CButton>
             </CButtonGroup>
             {schedule.frequency && (
-              <div className="d-flex align-items-center mb-3 gap-2">
-                <span>Horário do Backup</span>
-                <CFormInput
-                  placeholder={hours}
-                  style={{ width: '3rem' }}
-                  defaultValue={schedule.hour || ''}
-                  onChange={(e) => formatTime(Number(e.target.value), 'hour', 23, setSchedule)}
-                />
-                <span>:</span>
-                <CFormInput
-                  placeholder={minutes}
-                  style={{ width: '3rem' }}
-                  value={schedule.minute || ''}
-                  onChange={(e) => formatTime(Number(e.target.value), 'minute', 59, setSchedule)}
-                />
+              <div className="flex-col align-items-center justify-center mb-3 gap-2">
+                <div className="w-auto d-flex gap-2 mb-3 justify-center align-items-center">
+                  <span>Horário do Backup</span>
+                  <CFormInput
+                    placeholder={hours}
+                    style={{ width: '3rem' }}
+                    defaultValue={schedule.hour || ''}
+                    onChange={(e) => formatTime(Number(e.target.value), 'hour', 23, setSchedule)}
+                  />
+                  <span>:</span>
+                  <CFormInput
+                    placeholder={minutes}
+                    style={{ width: '3rem' }}
+                    value={schedule.minute || ''}
+                    onChange={(e) => formatTime(Number(e.target.value), 'minute', 59, setSchedule)}
+                  />
+                </div>
+                {metrics['databases'] && (
+                  <CFormSelect
+                    value={schedule.database}
+                    onChange={(e) =>
+                      setSchedule((prev) => ({ ...prev, database: Number(e.target.value) }))
+                    }
+                    aria-label="VM Select Input"
+                  >
+                    <option defaultValue>postgres</option>
+                    {metrics['databases'].map((database, i) => (
+                      <option value={database} key={i}>
+                        {database}
+                      </option>
+                    ))}
+                  </CFormSelect>
+                )}
               </div>
             )}
           </div>
