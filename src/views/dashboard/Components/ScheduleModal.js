@@ -32,7 +32,7 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
     try {
       const response = await instance.post(
         '/schedule_backup',
-        { ...schedule, ip: metrics['IP'] },
+        { ...schedule, ip: metrics['IP'], database: schedule.database_name || 'postgre' },
         {
           headers: {
             Authorization: `Basic ${token()}`,
@@ -135,20 +135,14 @@ const ScheduleModal = ({ scheduleVisible, setScheduleVisible, metrics }) => {
                   />
                 </div>
                 {metrics['databases'] && (
-                  <CFormSelect
-                    value={schedule.database}
+                  <CFormInput
+                    placeholder="Qual banco de dados?"
+                    style={{ width: '100%' }}
+                    defaultValue={schedule.database_name}
                     onChange={(e) =>
-                      setSchedule((prev) => ({ ...prev, database: Number(e.target.value) }))
+                      setSchedule((prev) => ({ ...prev, database_name: e.target.value }))
                     }
-                    aria-label="VM Select Input"
-                  >
-                    <option defaultValue>postgres</option>
-                    {metrics['databases'].map((database, i) => (
-                      <option value={database} key={i}>
-                        {database}
-                      </option>
-                    ))}
-                  </CFormSelect>
+                  />
                 )}
               </div>
             )}

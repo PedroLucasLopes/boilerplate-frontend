@@ -59,6 +59,7 @@ const BackupModal = ({ backupVisible, setBackupVisible, metrics }) => {
                   </option>
                 ))}
             </CFormSelect>
+            {console.log({ databases: metrics['databases'] })}
             {metrics['databases'] && (
               <CFormSelect
                 value={backupVm && backupVm.database}
